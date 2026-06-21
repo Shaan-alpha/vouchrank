@@ -1,0 +1,30 @@
+# Supabase project config. Run `supabase link` then `supabase db push` to apply migrations.
+project_id = "vouchrank"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+
+[db]
+port = 54322
+major_version = 17
+
+[auth]
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_confirmations = true
+
+[functions.submit-review]
+verify_jwt = false   # public funnel endpoint; validates + rate-limits internally
+
+[functions.stripe-webhook]
+verify_jwt = false   # Stripe calls this; verified via signature
+
+[functions.google-oauth-callback]
+verify_jwt = false   # Google redirect; state param verified internally
