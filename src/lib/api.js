@@ -67,8 +67,24 @@ export async function getCompanies() {
 }
 
 // Creates the first (or another) location for the signed-in user's agency.
+// In demo mode there is no DB, so we synthesize a company object that matches
+// the toCompany() shape; App.jsx appends it to local state.
 export async function createLocation({ name, category }) {
-  if (demoMode) return null;
+  if (demoMode) {
+    return {
+      id: `loc-${Date.now()}`,
+      name,
+      category: category || 'Local Business',
+      domain: null,
+      logoText: name.slice(0, 2).toUpperCase(),
+      colors: { primary: '#8b5cf6', secondary: '#06b6d4' },
+      googlePlaceId: null,
+      aioVisibility: 0,
+      googleRating: null,
+      googleCount: 0,
+      videoCount: 0,
+    };
+  }
   const agency = await getAgency();
   const { data, error } = await supabase
     .from('locations')
@@ -83,6 +99,35 @@ export async function createLocation({ name, category }) {
     .single();
   if (error) throw error;
   return toCompany(data);
+}
+
+// Updates editable identity fields on a location (name / category / domain).
+// Demo mode is a no-op (App merges optimistically); live mode persists and
+// returns the updated row mapped to the UI shape.
+export async function updateLocation(id, fields) {
+  if (demoMode) return { demo: true };
+  const patch = {};
+  if (fields.name !== undefined) patch.name = fields.name;
+  if (fields.category !== undefined) patch.category = fields.category;
+  if (fields.domain !== undefined) patch.domain = fields.domain;
+  const { data, error } = await supabase
+    .from('locations')
+    .update(patch)
+    .eq('id', id)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return toCompany(data);
+}
+
+// Permanently deletes a location. The FK `on delete cascade` chain removes its
+// reviews, audits, queries, checklist, competitors, campaigns, and google
+// credentials. Demo mode is a no-op (App removes it from local state).
+export async function deleteLocation(id) {
+  if (demoMode) return { demo: true };
+  const { error } = await supabase.from('locations').delete().eq('id', id);
+  if (error) throw error;
+  return { ok: true };
 }
 
 export async function getReviews(locationId) {
