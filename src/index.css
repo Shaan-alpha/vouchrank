@@ -1689,3 +1689,133 @@ h1, h2, h3, h4, h5, h6 {
   color: #000;
 }
 
+/* =====================================================================
+   Locations manager modal
+   ===================================================================== */
+.locations-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 4, 8, 0.7);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 10000;
+  padding: 20px;
+}
+.locations-modal {
+  max-width: 460px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.locations-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.locations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.location-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.location-row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  padding: 0;
+}
+.location-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.location-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.location-current-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--agency-primary);
+  color: #fff;
+}
+.location-row-actions {
+  display: flex;
+  gap: 4px;
+}
+.locations-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.locations-icon-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.locations-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.locations-danger {
+  color: #f87171;
+}
+.locations-danger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+}
+.location-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  width: 100%;
+}
+.locations-form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.locations-error {
+  color: #f87171;
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+.locations-hint {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin: 8px 0 0;
+  text-align: center;
+}
+
