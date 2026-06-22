@@ -18,6 +18,7 @@ import CompetitorBattleboard from './components/CompetitorBattleboard';
 import Campaigns from './components/Campaigns';
 import Billing from './components/Billing';
 import FirstLocation from './components/FirstLocation';
+import LocationsManager from './components/LocationsManager';
 
 export default function App() {
   const [activeRole, setActiveRole] = useState('Agency');
@@ -35,6 +36,8 @@ export default function App() {
   const [companyAudit, setCompanyAudit] = useState(null);
   const [competitors, setCompetitors] = useState([]);
   const [campaignData, setCampaignData] = useState(null);
+  const [agency, setAgency] = useState(null);
+  const [showLocationsModal, setShowLocationsModal] = useState(false);
 
   // --- Auth wiring ---
   useEffect(() => {
@@ -55,6 +58,7 @@ export default function App() {
       setSelectedCompany((prev) => prev || list[0] || null);
       setCompaniesLoaded(true);
     });
+    api.getAgency().then(setAgency).catch(() => {});
   }, [session]);
 
   // --- Load per-location data when the selected company changes ---
@@ -116,14 +120,27 @@ export default function App() {
     setSelectedCompany(updatedCompany);
   };
 
+  // Clears stale per-location data so keyed children remount fresh once the
+  // newly selected (or created) location loads.
+  const clearTenantData = () => {
+    setReviews([]);
+    setCompanyAudit(null);
+    setCompetitors([]);
+    setCampaignData(null);
+  };
+
   const handleCompanyChange = (e) => {
     const comp = companies.find((c) => c.id === e.target.value);
     if (comp) {
-      // Clear stale tenant data so keyed children remount fresh once the new one loads.
-      setReviews([]);
-      setCompanyAudit(null);
-      setCompetitors([]);
-      setCampaignData(null);
+      clearTenantData();
+      setSelectedCompany(comp);
+    }
+  };
+
+  const handleSelectLocation = (id) => {
+    const comp = companies.find((c) => c.id === id);
+    if (comp && comp.id !== selectedCompany?.id) {
+      clearTenantData();
       setSelectedCompany(comp);
     }
   };
@@ -138,13 +155,42 @@ export default function App() {
     }
   };
 
+  const handleAddLocation = async ({ name, category }) => {
+    const loc = await api.createLocation({ name, category });
+    if (!loc) return;
+    setCompanies((prev) => [...prev, loc]);
+    clearTenantData();
+    setSelectedCompany(loc);
+  };
+
+  const handleUpdateLocation = async (id, fields) => {
+    const ui = {};
+    if (fields.name !== undefined) ui.name = fields.name;
+    if (fields.category !== undefined) ui.category = fields.category;
+    if (fields.domain !== undefined) ui.domain = fields.domain;
+    setCompanies((prev) => prev.map((c) => (c.id === id ? { ...c, ...ui } : c)));
+    setSelectedCompany((prev) => (prev && prev.id === id ? { ...prev, ...ui } : prev));
+    await api.updateLocation(id, fields).catch(() => {});
+  };
+
+  const handleDeleteLocation = async (id) => {
+    const next = companies.filter((c) => c.id !== id);
+    setCompanies(next);
+    if (selectedCompany && selectedCompany.id === id) {
+      clearTenantData();
+      setSelectedCompany(next[0] || null);
+    }
+    if (next.length === 0) setShowLocationsModal(false); // avoid re-opening over onboarding
+    await api.deleteLocation(id).catch(() => {});
+  };
+
   // --- Gates ---
   if (!authReady) {
     return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#030408', color: '#fff' }}>Loading…</div>;
   }
   if (isSupabaseConfigured && !session) return <Auth />;
   if (!selectedCompany) {
-    if (isSupabaseConfigured && companiesLoaded && companies.length === 0) {
+    if (companiesLoaded && companies.length === 0) {
       return <FirstLocation onCreate={handleCreateLocation} />;
     }
     return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#030408', color: '#fff' }}>Setting up your workspace…</div>;
@@ -231,6 +277,9 @@ export default function App() {
                 <select className="tenant-selector" value={selectedCompany.id} onChange={handleCompanyChange} id="select-tenant-location">
                   {companies.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                 </select>
+                <button className="locations-icon-btn" onClick={() => setShowLocationsModal(true)} id="btn-manage-locations">
+                  Manage
+                </button>
               </div>
             </div>
 
@@ -257,6 +306,19 @@ export default function App() {
             )}
             {activeTab === 'billing' && <Billing />}
           </main>
+
+          {showLocationsModal && (
+            <LocationsManager
+              companies={companies}
+              selectedId={selectedCompany.id}
+              maxLocations={agency?.max_locations ?? 15}
+              onAdd={handleAddLocation}
+              onUpdate={handleUpdateLocation}
+              onDelete={handleDeleteLocation}
+              onSelect={handleSelectLocation}
+              onClose={() => setShowLocationsModal(false)}
+            />
+          )}
         </div>
       )}
     </div>
