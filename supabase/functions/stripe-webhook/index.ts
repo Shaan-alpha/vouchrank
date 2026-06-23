@@ -1,10 +1,12 @@
 // Stripe webhook -> syncs subscription state onto the agency row (entitlements).
 // Configure endpoint in Stripe to POST here; verify_jwt=false (verified by signature).
-import Stripe from 'jsr:@stripe/stripe-js@npm:stripe@^17';
+import Stripe from 'https://esm.sh/stripe@17?target=denonext';
 import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2025-04-30.basil' });
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
+// Deno uses the Web Crypto API for signature verification (not Node's crypto).
+const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
 // Map Stripe Price -> plan tier + location cap (entitlements)
 const PLAN_BY_PRICE: Record<string, { plan: string; maxLocations: number }> = {
@@ -44,7 +46,7 @@ Deno.serve(async (req) => {
   const body = await req.text();
   let event: Stripe.Event;
   try {
-    event = await stripe.webhooks.constructEventAsync(body, signature!, webhookSecret);
+    event = await stripe.webhooks.constructEventAsync(body, signature!, webhookSecret, undefined, cryptoProvider);
   } catch (err) {
     return new Response(`Webhook signature error: ${(err as Error).message}`, { status: 400 });
   }
