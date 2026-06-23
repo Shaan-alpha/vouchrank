@@ -77,9 +77,11 @@ rather than writing to the DB directly. Full detail in
 
 ## Status
 
-Phase 0 (foundation) is complete: compliant funnel, live multi-tenant backend, full
-dashboard, and backend wiring. Integrations go live in Phase 1. See
-[ROADMAP.md](ROADMAP.md).
+Phase 0 (foundation) complete. **Phase 1 (integrations) is live** (2026-06-23): all 9
+edge functions deployed with secrets set — Stripe Checkout (test mode), Gemini-powered
+AI audits, and Google OAuth wired (Google review *sync* still pending GBP API access
+approval). **Phase 2 (private beta) is underway**: location-management CRUD and the real
+embeddable `widget.js` have shipped. See [ROADMAP.md](ROADMAP.md).
 
 ## Screenshots
 

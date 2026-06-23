@@ -80,16 +80,20 @@ src/
   components/
     Auth.jsx                 # email/password sign in/up (live mode only)
     FirstLocation.jsx        # onboarding when a live agency has no locations yet
+    LocationsManager.jsx     # add/edit/delete locations (modal off the tenant selector)
     AioDashboard.jsx         # AI-visibility gauge, query audit, checklist, "Run AI Audit"
     ReviewList.jsx           # review moderation + AI reply drafting
     CompetitorBattleboard.jsx
     SocialGenerator.jsx      # review -> PNG via canvas
     BrandingSettings.jsx     # white-label config + "Connect Google" button
     HarvesterFunnel.jsx      # customer-facing review funnel (COMPLIANT — see guardrail #1)
-    WidgetsDemo.jsx          # embeddable widget previews + embed code
+    WidgetsDemo.jsx          # embeddable widget previews + real embed snippet
     Campaigns.jsx            # review-request SMS/email composer + send
     Billing.jsx              # plan cards -> Stripe Checkout
   utils/mockData.js          # demo seed data
+public/
+  widget.js                  # standalone embeddable reviews widget (served at /widget.js)
+  widget-test.html           # local harness for widget.js (+ widget-sample.json)
 supabase/
   config.toml
   migrations/                # 0001 schema+RLS, 0002 storage, 0003 hardening, 0004 fn grants
@@ -118,7 +122,9 @@ BACKEND.md                   # deploy runbook
 - **Live mode** (`.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`):
   auth is enforced, reads/writes hit Postgres (RLS-scoped), edge functions run.
 - A live project is already provisioned: **`vouchrank`** (ref
-  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0004 applied.
+  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0004 applied. Edge functions
+  are **deployed + secrets set** (2026-06-23); Stripe is in **test mode** and AIO runs
+  Gemini-only — see [BACKEND.md](BACKEND.md) → "Activation status".
 
 ## Before you change X, read Y
 - Review funnel / sentiment / routing → [COMPLIANCE.md](COMPLIANCE.md)

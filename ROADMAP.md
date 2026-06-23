@@ -1,6 +1,6 @@
 # Roadmap
 
-Phased plan from foundation to scale. Status as of **2026-06-21**.
+Phased plan from foundation to scale. Status as of **2026-06-23**.
 Legend: ✅ done · 🟡 in progress · ⬜ not started.
 
 ---
@@ -15,7 +15,7 @@ The compliant prototype + live multi-tenant backbone.
 - ✅ Data-layer seam (`src/lib/api.js`) with demo-mode mock fallback
 - ✅ Agency dashboard: AIO, reviews, competitors, social generator, widgets, campaigns, branding, billing
 - ✅ UI wired to backend actions (Stripe Checkout, Connect Google, Run AI Audit, send request)
-- ✅ Edge functions authored (8) + shared helpers
+- ✅ Edge functions authored (9) + shared helpers
 - ✅ "Create first location" onboarding for live mode
 
 **Definition of done:** ✅ `npm run build` green, `npm run lint` 0 errors, demo mode fully clickable, live DB reachable.
@@ -23,23 +23,23 @@ The compliant prototype + live multi-tenant backbone.
 ---
 
 ## Phase 1 — Integrations live 🟡
-Make the authored edge functions real with credentials.
+Make the authored edge functions real with credentials. (Activated 2026-06-23.)
 
-- ⬜ Deploy all edge functions (`supabase functions deploy`) + set secrets
-- ⬜ Stripe: create the $299 / $499 recurring prices, wire webhook → entitlements
-- ⬜ Google Business Profile API access request + OAuth consent screen (long lead time — **start first**)
-- ⬜ AIO engine on real LLM keys (Gemini 3.x / OpenAI / Perplexity), verify model IDs
-- ⬜ Resend email sending (domain verification)
-- ⬜ Twilio SMS + **A2P 10DLC registration** (weeks of lead time)
+- ✅ Deploy all edge functions (`supabase functions deploy`) + set secrets — all **9** deployed, **11** secrets set
+- 🟡 Stripe: $299 / $499 recurring prices + webhook → entitlements wired — **test mode** (`rk_test_`); recreate live prices/webhook before real charges
+- 🟡 Google Business Profile: OAuth client + consent screen + redirect wired; **GBP API access request still pending approval** (quota 0 until granted — long lead)
+- 🟡 AIO engine: **Gemini live** (`AIO_GEMINI_MODEL=gemini-2.5-flash`); OpenAI / Perplexity deferred (billed)
+- 🟡 Resend: API key set; **domain verification** still required before sending
+- ⬜ Twilio SMS + **A2P 10DLC registration** (weeks of lead time) — deferred
 
 **Definition of done:** a real agency can connect Google, sync reviews, run a real AIO audit, send a real request, and subscribe via Stripe.
 
 ---
 
-## Phase 2 — Private beta ⬜
+## Phase 2 — Private beta 🟡
 Operational completeness for first real users.
 
-- ⬜ Location management CRUD (add/edit/remove beyond first-location onboarding)
+- ✅ Location management CRUD (add/edit/remove via a modal off the tenant selector; demo + live)
 - ⬜ Review moderation/approval workflow (pending → approved/rejected) surfaced in UI
 - ✅ Real embeddable `widget.js` (`public/widget.js` + public `widget-reviews` fn; production CDN hosting still TODO)
 - ⬜ Error handling, empty states, and observability (logging/alerts)
