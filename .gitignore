@@ -17,6 +17,11 @@ dist-ssr
 .env.*
 !.env.example
 
+# Generated Supabase function-secrets bundle (never commit)
+supabase/.env.secrets
+# Supabase CLI local link/state
+supabase/.temp
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

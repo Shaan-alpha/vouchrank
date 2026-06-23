@@ -1,6 +1,6 @@
 // Creates a Stripe Checkout session for an agency subscription.
 // Invoked from the authenticated dashboard: supabase.functions.invoke('stripe-checkout', { body: { plan } })
-import Stripe from 'jsr:@stripe/stripe-js@npm:stripe@^17';
+import Stripe from 'https://esm.sh/stripe@17?target=denonext';
 import { corsHeaders, json } from '../_shared/cors.ts';
 import { supabaseAdmin, getUser, getAgencyForUser } from '../_shared/supabaseAdmin.ts';
 
