@@ -49,6 +49,18 @@ rename — rename it there if you want it to read `vouchrank`; the ref is unchan
 intentional items (service-role-only token table; RLS helper functions executable by
 `authenticated` as required; unused indexes on the empty DB).
 
+## Activation status (2026-06-23)
+The hosted project is **live**: all **9** edge functions deployed and **11** secrets set. Steps 1–6 below are done for it; they remain the runbook for a fresh project.
+
+- **Stripe** — **test mode** (`rk_test_`): Agency `price_1TlJOJ…` ($299) / Agency Pro `price_1TlJOK…` ($499); webhook endpoint `we_1TlJRP…` → `stripe-webhook`. Recreate in **live mode** before real charges.
+- **AIO** — Gemini only: `AIO_GEMINI_MODEL=gemini-2.5-flash` (the code default `gemini-3.5-flash` isn't on the current key). OpenAI / Perplexity intentionally unset (billed).
+- **Google** — OAuth client + redirect (`…/functions/v1/google-oauth-callback`) configured; **GBP API access request pending** → `sync-google-reviews` returns no data until Google approves (reviews live only in the legacy `mybusiness.googleapis.com` v4 API).
+- **Resend** — key set; domain verification still required before sending.
+- **Frontend** — not yet hosted; `APP_BASE_URL=http://localhost:5173`. Update it and re-run `secrets set` when you deploy the frontend.
+- **Twilio** — not configured (A2P 10DLC).
+
+> Secrets are managed with `supabase secrets set --env-file supabase/.env.secrets` (a gitignored bundle of the non-`VITE_`, non-`SUPABASE_` vars). `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` are auto-injected by the platform — don't set them.
+
 ## Deploy order
 1. `supabase link --project-ref fdpmuyllyqrmhljetzco` then `supabase db push` (migrations 0001–0004; already applied on the hosted project — this syncs a fresh/local DB).
 2. In the dashboard: enable Email auth; confirm the signup trigger ran.
