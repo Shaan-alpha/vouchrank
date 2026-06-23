@@ -41,7 +41,7 @@ Operational completeness for first real users.
 
 - ⬜ Location management CRUD (add/edit/remove beyond first-location onboarding)
 - ⬜ Review moderation/approval workflow (pending → approved/rejected) surfaced in UI
-- ⬜ Real embeddable `widget.js` (the showcase currently previews; ship the actual script + CDN)
+- ✅ Real embeddable `widget.js` (`public/widget.js` + public `widget-reviews` fn; production CDN hosting still TODO)
 - ⬜ Error handling, empty states, and observability (logging/alerts)
 - ⬜ Team invites (use `agency_members` roles)
 - ⬜ Onboarding polish + sample data
