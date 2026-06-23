@@ -23,6 +23,9 @@ enable_confirmations = true
 [functions.submit-review]
 verify_jwt = false   # public funnel endpoint; validates + rate-limits internally
 
+[functions.widget-reviews]
+verify_jwt = false   # public widget endpoint; read-only, CORS *
+
 [functions.stripe-webhook]
 verify_jwt = false   # Stripe calls this; verified via signature
 

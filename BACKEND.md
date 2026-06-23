@@ -31,6 +31,7 @@ every screen to live Postgres data behind auth. The single seam is `src/lib/api.
 | Function | Auth | Purpose |
 |---|---|---|
 | `submit-review` | public | Funnel posts here; validates, rate-limits, inserts (no anon table access) |
+| `widget-reviews` | public | Public reviews for the embeddable widget (CORS `*`) |
 | `stripe-checkout` | user | Creates a subscription Checkout session |
 | `stripe-webhook` | signature | Syncs subscription status → `agencies.plan` / `max_locations` |
 | `google-oauth-start` | user | Returns Google consent URL for a location |
@@ -56,6 +57,11 @@ intentional items (service-role-only token table; RLS helper functions executabl
 5. Stripe: create the two recurring Prices, set their IDs as secrets, add the webhook endpoint → `stripe-webhook`, copy the signing secret to `STRIPE_WEBHOOK_SECRET`.
 6. Google: request **Business Profile API** access (approval takes days–weeks — start now), configure the OAuth consent screen + redirect URI.
 7. Twilio: register an **A2P 10DLC** Messaging Service (weeks of lead time) before SMS at scale.
+
+> **Widget hosting:** `public/widget.js` ships in the app build (`dist/widget.js`).
+> The embed snippet points at the app origin by default; for production, serve
+> `widget.js` from a stable origin/CDN and ensure client `data-api` targets the
+> deployed `widget-reviews` URL.
 8. Set `VITE_*` vars in the frontend host (e.g. Vercel) and deploy.
 9. Schedule cron (Supabase Scheduled Functions / `pg_cron`) for `sync-google-reviews` and `run-aio-audit` per connected location.
 
