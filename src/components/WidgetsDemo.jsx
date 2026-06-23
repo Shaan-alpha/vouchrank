@@ -7,10 +7,17 @@ export default function WidgetsDemo({ reviews, company }) {
   const [widgetLayout] = useState('grid'); // grid, slider
   const [widgetTheme, setWidgetTheme] = useState('dark'); // dark, light
 
-  const positiveReviews = reviews.filter(r => r.rating >= 4);
+  // Show the same set the real widget shows: public, non-rejected — any rating
+  // (no score filter, per COMPLIANCE.md).
+  const positiveReviews = reviews.filter((r) => r.isPublic !== false);
 
-  const embedCodeSnippet = `<script src="https://cdn.vouchrank.com/widget.js" data-location="${company.id}" data-theme="${widgetTheme}" data-layout="${widgetLayout}" defer></script>
-<div id="vouchrank-widget" data-id="${company.id}"></div>`;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const widgetApi = supabaseUrl
+    ? `${supabaseUrl}/functions/v1/widget-reviews`
+    : 'https://YOUR-PROJECT.supabase.co/functions/v1/widget-reviews';
+  const scriptOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://app.vouchrank.com';
+
+  const embedCodeSnippet = `<script src="${scriptOrigin}/widget.js" data-location="${company.id}" data-api="${widgetApi}" data-theme="${widgetTheme}" data-layout="${widgetLayout}" async></script>`;
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(embedCodeSnippet);

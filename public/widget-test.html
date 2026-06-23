@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VouchRank widget.js — local test harness</title>
+    <style>
+      body { margin: 0; padding: 24px; background: #fff; font-family: system-ui, sans-serif; }
+      h1 { font-size: 18px; } h2 { font: 600 14px system-ui; color: #374151; }
+      section { margin-bottom: 32px; } code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>widget.js local test harness</h1>
+    <p>Loads <code>/widget.js</code> against <code>/widget-sample.json</code> (the query string is ignored by the static file). Run <code>npm run dev</code> and open this page.</p>
+
+    <section>
+      <h2>Grid · dark</h2>
+      <script src="/widget.js" data-location="demo" data-api="/widget-sample.json" data-theme="dark" data-layout="grid"></script>
+    </section>
+
+    <section>
+      <h2>Carousel · light</h2>
+      <script src="/widget.js" data-location="demo" data-api="/widget-sample.json" data-theme="light" data-layout="carousel"></script>
+    </section>
+  </body>
+</html>

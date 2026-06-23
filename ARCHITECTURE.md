@@ -77,6 +77,7 @@ bucket-listing policy, revoke `anon` execute) · `0004` revoke trigger-fn execut
 | Function | Auth | Purpose |
 |---|---|---|
 | `submit-review` | public | Funnel posts here; validates, rate-limits, inserts (no anon table access) |
+| `widget-reviews` | public | Returns a location's public, non-rejected reviews for the embeddable widget (CORS `*`, cached 5 min) |
 | `stripe-checkout` | user | Creates a subscription Checkout session |
 | `stripe-webhook` | signature | Syncs subscription → `agencies.plan` / `max_locations` |
 | `google-oauth-start` | user | Builds the Google consent URL for a location |
@@ -93,6 +94,9 @@ Shared helpers (CORS, service-role client, user resolution) live in
 - **Customer leaves a review:** funnel → `submit-review` (service role) → `reviews`
   (status `pending`). Agency approves in `ReviewList`. Low ratings are stored, never
   suppressed.
+- **Embedded widget loads:** client site `widget.js` → `widget-reviews` (service
+  role, CORS `*`) → returns `is_public`, non-rejected reviews (any rating) →
+  rendered on the client's page.
 - **AI audit:** dashboard "Run AI Audit" → `run-aio-audit` → asks Gemini/OpenAI/
   Perplexity local-intent queries → scores recommendation rate → writes
   `aio_audits` + `aio_queries` + `locations.aio_visibility`.
