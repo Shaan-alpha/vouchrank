@@ -19,10 +19,12 @@ import Campaigns from './components/Campaigns';
 import Billing from './components/Billing';
 import FirstLocation from './components/FirstLocation';
 import LocationsManager from './components/LocationsManager';
+import { initialTabFromReturn, initialNoticeFromReturn } from './lib/returnParams';
 
 export default function App() {
   const [activeRole, setActiveRole] = useState('Agency');
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(initialTabFromReturn); // lazy: reads return URL once
+  const [notice, setNotice] = useState(initialNoticeFromReturn);    // post-redirect banner | null
 
   // Auth (only enforced when Supabase is configured)
   const [session, setSession] = useState(null);
@@ -38,6 +40,20 @@ export default function App() {
   const [campaignData, setCampaignData] = useState(null);
   const [agency, setAgency] = useState(null);
   const [showLocationsModal, setShowLocationsModal] = useState(false);
+
+  // --- Post-redirect: strip the return query once so a refresh won't re-fire it ---
+  useEffect(() => {
+    if (window.location.search) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
+  // Auto-dismiss the return banner (setNotice runs in an async callback, not the effect body).
+  useEffect(() => {
+    if (!notice) return undefined;
+    const t = setTimeout(() => setNotice(null), 6000);
+    return () => clearTimeout(t);
+  }, [notice]);
 
   // --- Auth wiring ---
   useEffect(() => {
@@ -248,6 +264,12 @@ export default function App() {
           </nav>
 
           <main className="main-content">
+            {notice && (
+              <div className={`return-notice return-notice-${notice.kind}`}>
+                <span>{notice.text}</span>
+                <button onClick={() => setNotice(null)} aria-label="Dismiss" id="btn-dismiss-notice">×</button>
+              </div>
+            )}
             <div className="header-bar">
               <div className="welcome-section">
                 <h1>
