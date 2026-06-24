@@ -22,6 +22,12 @@ supabase/.env.secrets
 # Supabase CLI local link/state
 supabase/.temp
 
+# Playwright UI-check artifacts (the script is committed; its output is not)
+e2e/shots
+e2e/last-run.log
+test-results
+playwright-report
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
