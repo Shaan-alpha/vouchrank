@@ -62,7 +62,13 @@ npm run dev        # Vite dev server (http://localhost:5173)
 npm run build      # production build (must stay green)
 npm run lint       # ESLint (must stay at 0 errors)
 npm run preview    # preview the production build
+npm run verify:ui  # Playwright UI smoke-check (spawns a demo-mode server, drives Chromium)
 ```
+
+`verify:ui` is an optional browser-driven check (the repo's only e2e test) — it
+boots the app in demo mode and asserts the post-redirect routing (Stripe/Google
+return → correct tab + banner). Lint + build remain the required DoD; run
+`verify:ui` when touching `App.jsx` routing or the return banners.
 
 Supabase (CLI): `supabase link --project-ref <ref>`, `supabase db push`,
 `supabase functions deploy <name>`, `supabase secrets set KEY=value`.
