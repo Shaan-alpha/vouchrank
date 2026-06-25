@@ -44,6 +44,26 @@ See [src/components/HarvesterFunnel.jsx](src/components/HarvesterFunnel.jsx).
 
 The success screen states feedback is collected in line with FTC & Google policies.
 
+## Review moderation (curation, not gating)
+
+Agencies can approve or reject collected reviews in the Reviews Manager. This is
+content curation for **authenticity**, never sentiment gating:
+
+- **Opt-out display.** The public widget shows every review where `is_public`
+  and `status != 'rejected'`. Reviews appear by default; nothing is auto-hidden.
+  We deliberately do **not** require approval before display — an opt-in model
+  would let an agency gate by never approving negatives.
+- **Non-sentiment reasons.** Rejecting requires a reason from a fixed list
+  (spam, fake, abusive, off-topic, legal, other). There is intentionally **no**
+  "low rating" reason, so the audit trail shows rejections aren't sentiment-based.
+- **Uniform across sources.** Google-synced reviews can be rejected too;
+  rejecting only hides a review from the agency's own widget — it never affects
+  the public Google listing.
+
+Any change that makes display depend on rating or predicted sentiment (auto-
+rejecting low ratings, requiring approval to show, sorting to nudge rejecting
+negatives) is prohibited under the guardrail above.
+
 ## Consent
 - **Video testimonials:** the customer must check an explicit consent box authorizing
   storage and public display before the video review submits.
