@@ -1,10 +1,27 @@
 import { useState } from 'react';
-import { Star, Play, X, Sparkles, Filter, Video, MessageSquare } from 'lucide-react';
+import { Star, Play, X, Sparkles, Filter, Video, MessageSquare, Clock, CheckCircle, Ban, RotateCcw, ShieldCheck } from 'lucide-react';
 
-export default function ReviewList({ reviews, onAddReviewReply }) {
+// Non-sentiment reject reasons (see COMPLIANCE.md). No rating/sentiment option.
+const REJECT_REASONS = [
+  { value: 'spam', label: 'Spam' },
+  { value: 'fake', label: 'Fake / not a real customer' },
+  { value: 'abusive', label: 'Abusive / offensive' },
+  { value: 'off_topic', label: 'Off-topic' },
+  { value: 'legal', label: 'Legal / privacy' },
+  { value: 'other', label: 'Other' },
+];
+const REASON_LABEL = Object.fromEntries(REJECT_REASONS.map((r) => [r.value, r.label]));
+
+export default function ReviewList({ reviews, onAddReviewReply, onSetReviewStatus }) {
   const [sourceFilter, setSourceFilter] = useState('All');
   const [sentimentFilter, setSentimentFilter] = useState('All');
   const [selectedKeyword, setSelectedKeyword] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+
+  // Reject-reason picker state
+  const [rejectingReviewId, setRejectingReviewId] = useState(null);
+  const [rejectReasonDraft, setRejectReasonDraft] = useState('');
+  const [rejectNoteDraft, setRejectNoteDraft] = useState('');
   
   // Video player state
   const [activeVideo, setActiveVideo] = useState(null);
@@ -30,7 +47,8 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
     const matchSource = sourceFilter === 'All' || r.source === sourceFilter;
     const matchSentiment = sentimentFilter === 'All' || r.sentiment === sentimentFilter;
     const matchKeyword = selectedKeyword === 'All' || r.keywords.includes(selectedKeyword);
-    return matchSource && matchSentiment && matchKeyword;
+    const matchStatus = statusFilter === 'All' || r.status === statusFilter;
+    return matchSource && matchSentiment && matchKeyword && matchStatus;
   });
 
   // Calculate review stats
@@ -39,6 +57,8 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
     : 0;
   
   const videoCount = reviews.filter(r => r.source === 'Video').length;
+
+  const pendingCount = reviews.filter((r) => r.status === 'pending').length;
 
   // Video playback simulation
   const handlePlayVideo = (review) => {
@@ -107,6 +127,29 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
     setDraftText('');
   };
 
+  // Moderation actions
+  const handleApprove = (id) => onSetReviewStatus(id, 'approved');
+  const handleRestore = (id) => onSetReviewStatus(id, 'pending');
+
+  const openReject = (id) => {
+    setRejectingReviewId(id);
+    setRejectReasonDraft('');
+    setRejectNoteDraft('');
+  };
+  const cancelReject = () => {
+    setRejectingReviewId(null);
+    setRejectReasonDraft('');
+    setRejectNoteDraft('');
+  };
+  const confirmReject = (id) => {
+    if (!rejectReasonDraft) return;
+    onSetReviewStatus(id, 'rejected', {
+      reason: rejectReasonDraft,
+      note: rejectNoteDraft.trim() || null,
+    });
+    cancelReject();
+  };
+
   return (
     <div>
       {/* Overview Stats Row */}
@@ -140,6 +183,21 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
               {reviews.filter(r => r.aiReply).length} / {reviews.length}
             </div>
             <div className="stat-label">AI Replies Posted</div>
+          </div>
+        </div>
+
+        <div
+          className="glass-card stat-card"
+          onClick={() => setStatusFilter('pending')}
+          id="btn-filter-pending"
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="stat-icon" style={{ color: pendingCount ? 'var(--warning)' : 'var(--text-muted)' }}>
+            <Clock />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">{pendingCount}</div>
+            <div className="stat-label">Pending Review</div>
           </div>
         </div>
       </div>
@@ -180,8 +238,27 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
                 </button>
               ))}
             </div>
+
+            {/* Status (moderation) Filter */}
+            <div className="filter-group">
+              {['All', 'pending', 'approved', 'rejected'].map((st) => (
+                <button
+                  key={st}
+                  className={`filter-btn ${statusFilter === st ? 'active' : ''}`}
+                  onClick={() => setStatusFilter(st)}
+                  id={`btn-status-${st === 'All' ? 'all' : st}`}
+                >
+                  {st === 'All' ? 'All' : st.charAt(0).toUpperCase() + st.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+
+        <p className="mod-compliance-note">
+          <ShieldCheck style={{ width: '13px', height: '13px' }} />
+          Moderation is for authenticity (spam, fake, or abusive reviews) — it applies to every rating equally and never hides honest negative feedback.
+        </p>
 
         {/* AI Extracted Topic Keyword Cloud */}
         <div className="keyword-cloud-container">
@@ -246,6 +323,11 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
                       ))}
                     </div>
                     <div className="review-badge-group">
+                      <span className={`review-tag status-${r.status}`}>
+                        {r.status === 'pending' && 'Pending'}
+                        {r.status === 'approved' && 'Approved'}
+                        {r.status === 'rejected' && `Rejected · ${REASON_LABEL[r.rejectReason] || 'Removed'}`}
+                      </span>
                       <span className={`review-tag ${r.source === 'Video' ? 'tag-video' : ''}`}>
                         {r.source}
                       </span>
@@ -331,6 +413,86 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
                       <Sparkles style={{ width: '12px' }} />
                       Draft AI Response
                     </button>
+                  )}
+                </div>
+
+                {/* Moderation actions */}
+                <div className="review-mod-actions">
+                  {rejectingReviewId === r.id ? (
+                    <div className="reject-reason-picker">
+                      <div className="reject-reason-title">Why are you rejecting this review?</div>
+                      <div className="reject-reason-pills">
+                        {REJECT_REASONS.map((reason) => (
+                          <button
+                            key={reason.value}
+                            type="button"
+                            className={`reason-pill ${rejectReasonDraft === reason.value ? 'active' : ''}`}
+                            onClick={() => setRejectReasonDraft(reason.value)}
+                            id={`reason-${reason.value}-${r.id}`}
+                          >
+                            {reason.label}
+                          </button>
+                        ))}
+                      </div>
+                      <textarea
+                        value={rejectNoteDraft}
+                        onChange={(e) => setRejectNoteDraft(e.target.value)}
+                        placeholder="Optional internal note…"
+                        className="input-control"
+                        style={{ width: '100%', minHeight: '54px', margin: '8px 0', fontSize: '12px', background: '#090a0f' }}
+                      />
+                      <div className="ai-reply-actions">
+                        <button className="btn-sm-action" onClick={cancelReject}>Cancel</button>
+                        <button
+                          className="btn-sm-action primary"
+                          onClick={() => confirmReject(r.id)}
+                          disabled={!rejectReasonDraft}
+                          id={`btn-confirm-reject-${r.id}`}
+                        >
+                          Confirm reject
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="review-mod-buttons">
+                      {r.status === 'pending' && (
+                        <>
+                          <button className="btn-sm-action primary" onClick={() => handleApprove(r.id)} id={`btn-approve-review-${r.id}`}>
+                            <CheckCircle style={{ width: '13px', height: '13px', verticalAlign: '-2px', marginRight: '4px' }} />
+                            Approve
+                          </button>
+                          <button className="btn-sm-action" onClick={() => openReject(r.id)} id={`btn-reject-review-${r.id}`}>
+                            <Ban style={{ width: '13px', height: '13px', verticalAlign: '-2px', marginRight: '4px' }} />
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {r.status === 'approved' && (
+                        <>
+                          <span className="mod-state-label approved">
+                            <CheckCircle style={{ width: '13px', height: '13px', verticalAlign: '-2px', marginRight: '4px' }} />
+                            Approved
+                          </span>
+                          <button className="btn-sm-action" onClick={() => openReject(r.id)} id={`btn-reject-review-${r.id}`}>
+                            <Ban style={{ width: '13px', height: '13px', verticalAlign: '-2px', marginRight: '4px' }} />
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {r.status === 'rejected' && (
+                        <>
+                          <span className="mod-state-label rejected">
+                            <Ban style={{ width: '13px', height: '13px', verticalAlign: '-2px', marginRight: '4px' }} />
+                            Rejected · {REASON_LABEL[r.rejectReason] || 'Removed'}
+                            {r.rejectNote ? ` — ${r.rejectNote}` : ''}
+                          </span>
+                          <button className="btn-sm-action" onClick={() => handleRestore(r.id)} id={`btn-restore-review-${r.id}`}>
+                            <RotateCcw style={{ width: '13px', height: '13px', verticalAlign: '-2px', marginRight: '4px' }} />
+                            Restore
+                          </button>
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
 

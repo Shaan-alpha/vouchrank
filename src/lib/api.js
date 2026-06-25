@@ -41,6 +41,9 @@ const toReview = (r) => ({
   text: r.text,
   keywords: r.keywords || [],
   sentiment: r.sentiment,
+  status: r.status,
+  rejectReason: r.reject_reason ?? null,
+  rejectNote: r.reject_note ?? null,
   date: new Date(r.created_at).toLocaleDateString(),
   videoUrl: r.video_url,
   aiReply: r.ai_reply,
@@ -199,6 +202,20 @@ export async function saveReviewReply(reviewId, aiReply) {
   if (demoMode) return;
   const { error } = await supabase.from('reviews').update({ ai_reply: aiReply }).eq('id', reviewId);
   if (error) throw error;
+}
+
+// Moderation: approve / reject / restore a review. Rejecting persists a
+// non-sentiment reason (+ optional note); approve/pending clear any prior
+// rejection. Demo mode is a no-op — App.jsx owns optimistic state.
+export async function setReviewStatus(reviewId, status, { reason = null, note = null } = {}) {
+  if (demoMode) return { demo: true };
+  const patch =
+    status === 'rejected'
+      ? { status, reject_reason: reason, reject_note: note }
+      : { status, reject_reason: null, reject_note: null };
+  const { error } = await supabase.from('reviews').update(patch).eq('id', reviewId);
+  if (error) throw error;
+  return { ok: true };
 }
 
 // Public funnel submissions go through an Edge Function (service_role), never a

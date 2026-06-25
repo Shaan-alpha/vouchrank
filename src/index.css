@@ -599,6 +599,87 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(var(--agency-secondary-rgb), 0.2);
 }
 
+/* --- Review moderation: status badges --- */
+.review-tag.status-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning);
+  border-color: rgba(245, 158, 11, 0.28);
+}
+.review-tag.status-approved {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+.review-tag.status-rejected {
+  background: rgba(239, 68, 68, 0.10);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.24);
+}
+.mod-compliance-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+/* --- Review moderation: actions + reject picker --- */
+.review-mod-actions {
+  margin-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 12px;
+}
+.review-mod-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn-sm-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.mod-state-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+.mod-state-label.approved { color: var(--success); }
+.mod-state-label.rejected { color: #f87171; }
+
+.reject-reason-picker {
+  background: #0c0d12;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 12px;
+}
+.reject-reason-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.reject-reason-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.reason-pill {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+.reason-pill.active {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: #f87171;
+  color: #fff;
+}
+
 .review-stars {
   display: flex;
   gap: 2px;

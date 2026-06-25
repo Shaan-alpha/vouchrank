@@ -40,7 +40,7 @@ Make the authored edge functions real with credentials. (Activated 2026-06-23.)
 Operational completeness for first real users.
 
 - ✅ Location management CRUD (add/edit/remove via a modal off the tenant selector; demo + live)
-- ⬜ Review moderation/approval workflow (pending → approved/rejected) surfaced in UI
+- ✅ Review moderation/approval workflow (pending → approved/rejected) surfaced in UI
 - ✅ Real embeddable `widget.js` (`public/widget.js` + public `widget-reviews` fn; production CDN hosting still TODO)
 - ⬜ Error handling, empty states, and observability (logging/alerts)
 - ⬜ Team invites (use `agency_members` roles)
