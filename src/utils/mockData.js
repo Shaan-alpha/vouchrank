@@ -52,6 +52,7 @@ export const MOCK_REVIEWS = [
   // Austin Dental Reviews
   {
     id: "r1",
+    status: "approved",
     companyId: "austin-dental",
     author: "Sarah Jenkins",
     avatar: "SJ",
@@ -65,6 +66,7 @@ export const MOCK_REVIEWS = [
   },
   {
     id: "r2",
+    status: "pending",
     companyId: "austin-dental",
     author: "Marcus Vance",
     avatar: "MV",
@@ -79,6 +81,7 @@ export const MOCK_REVIEWS = [
   },
   {
     id: "r3",
+    status: "approved",
     companyId: "austin-dental",
     author: "Elena Rostova",
     avatar: "ER",
@@ -92,6 +95,9 @@ export const MOCK_REVIEWS = [
   },
   {
     id: "r4",
+    status: "rejected",
+    rejectReason: "fake",
+    rejectNote: "Reviewer could not be matched to an appointment record.",
     companyId: "austin-dental",
     author: "Danielle K.",
     avatar: "DK",
@@ -108,6 +114,7 @@ export const MOCK_REVIEWS = [
   // Apex Software Reviews
   {
     id: "r5",
+    status: "approved",
     companyId: "apex-tech",
     author: "Johnathan Miller",
     avatar: "JM",
@@ -121,6 +128,7 @@ export const MOCK_REVIEWS = [
   },
   {
     id: "r6",
+    status: "pending",
     companyId: "apex-tech",
     author: "Samantha Cole",
     avatar: "SC",
@@ -135,6 +143,7 @@ export const MOCK_REVIEWS = [
   },
   {
     id: "r7",
+    status: "approved",
     companyId: "apex-tech",
     author: "Brian O'Connor",
     avatar: "BO",
@@ -150,6 +159,7 @@ export const MOCK_REVIEWS = [
   // Green Garden Reviews
   {
     id: "r8",
+    status: "approved",
     companyId: "green-garden",
     author: "Alice Cooper",
     avatar: "AC",
@@ -163,6 +173,7 @@ export const MOCK_REVIEWS = [
   },
   {
     id: "r9",
+    status: "approved",
     companyId: "green-garden",
     author: "Gary Peterson",
     avatar: "GP",
