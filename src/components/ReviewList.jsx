@@ -1,10 +1,22 @@
 import { useState } from 'react';
-import { Star, Play, X, Sparkles, Filter, Video, MessageSquare } from 'lucide-react';
+import { Star, Play, X, Sparkles, Filter, Video, MessageSquare, Clock, ShieldCheck } from 'lucide-react';
+
+// Non-sentiment reject reasons (see COMPLIANCE.md). No rating/sentiment option.
+const REJECT_REASONS = [
+  { value: 'spam', label: 'Spam' },
+  { value: 'fake', label: 'Fake / not a real customer' },
+  { value: 'abusive', label: 'Abusive / offensive' },
+  { value: 'off_topic', label: 'Off-topic' },
+  { value: 'legal', label: 'Legal / privacy' },
+  { value: 'other', label: 'Other' },
+];
+const REASON_LABEL = Object.fromEntries(REJECT_REASONS.map((r) => [r.value, r.label]));
 
 export default function ReviewList({ reviews, onAddReviewReply }) {
   const [sourceFilter, setSourceFilter] = useState('All');
   const [sentimentFilter, setSentimentFilter] = useState('All');
   const [selectedKeyword, setSelectedKeyword] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
   
   // Video player state
   const [activeVideo, setActiveVideo] = useState(null);
@@ -30,7 +42,8 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
     const matchSource = sourceFilter === 'All' || r.source === sourceFilter;
     const matchSentiment = sentimentFilter === 'All' || r.sentiment === sentimentFilter;
     const matchKeyword = selectedKeyword === 'All' || r.keywords.includes(selectedKeyword);
-    return matchSource && matchSentiment && matchKeyword;
+    const matchStatus = statusFilter === 'All' || r.status === statusFilter;
+    return matchSource && matchSentiment && matchKeyword && matchStatus;
   });
 
   // Calculate review stats
@@ -39,6 +52,8 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
     : 0;
   
   const videoCount = reviews.filter(r => r.source === 'Video').length;
+
+  const pendingCount = reviews.filter((r) => r.status === 'pending').length;
 
   // Video playback simulation
   const handlePlayVideo = (review) => {
@@ -142,6 +157,21 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
             <div className="stat-label">AI Replies Posted</div>
           </div>
         </div>
+
+        <div
+          className="glass-card stat-card"
+          onClick={() => setStatusFilter('pending')}
+          id="btn-filter-pending"
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="stat-icon" style={{ color: pendingCount ? 'var(--warning)' : 'var(--text-muted)' }}>
+            <Clock />
+          </div>
+          <div className="stat-info">
+            <div className="stat-value">{pendingCount}</div>
+            <div className="stat-label">Pending Review</div>
+          </div>
+        </div>
       </div>
 
       {/* Filter and Review List Block */}
@@ -180,8 +210,27 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
                 </button>
               ))}
             </div>
+
+            {/* Status (moderation) Filter */}
+            <div className="filter-group">
+              {['All', 'pending', 'approved', 'rejected'].map((st) => (
+                <button
+                  key={st}
+                  className={`filter-btn ${statusFilter === st ? 'active' : ''}`}
+                  onClick={() => setStatusFilter(st)}
+                  id={`btn-status-${st === 'All' ? 'all' : st}`}
+                >
+                  {st === 'All' ? 'All' : st.charAt(0).toUpperCase() + st.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+
+        <p className="mod-compliance-note">
+          <ShieldCheck style={{ width: '13px', height: '13px' }} />
+          Moderation is for authenticity (spam, fake, or abusive reviews) — it applies to every rating equally and never hides honest negative feedback.
+        </p>
 
         {/* AI Extracted Topic Keyword Cloud */}
         <div className="keyword-cloud-container">
@@ -246,6 +295,11 @@ export default function ReviewList({ reviews, onAddReviewReply }) {
                       ))}
                     </div>
                     <div className="review-badge-group">
+                      <span className={`review-tag status-${r.status}`}>
+                        {r.status === 'pending' && 'Pending'}
+                        {r.status === 'approved' && 'Approved'}
+                        {r.status === 'rejected' && `Rejected · ${REASON_LABEL[r.rejectReason] || 'Removed'}`}
+                      </span>
                       <span className={`review-tag ${r.source === 'Video' ? 'tag-video' : ''}`}>
                         {r.source}
                       </span>
