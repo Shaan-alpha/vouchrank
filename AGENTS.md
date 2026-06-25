@@ -63,12 +63,15 @@ npm run build      # production build (must stay green)
 npm run lint       # ESLint (must stay at 0 errors)
 npm run preview    # preview the production build
 npm run verify:ui  # Playwright UI smoke-check (spawns a demo-mode server, drives Chromium)
+npm run verify:moderation  # Playwright smoke-check for review moderation (approve/reject/restore)
 ```
 
-`verify:ui` is an optional browser-driven check (the repo's only e2e test) — it
-boots the app in demo mode and asserts the post-redirect routing (Stripe/Google
-return → correct tab + banner). Lint + build remain the required DoD; run
-`verify:ui` when touching `App.jsx` routing or the return banners.
+`verify:ui` and `verify:moderation` are optional browser-driven checks (the
+repo's e2e tests) — each boots the app in demo mode and asserts, respectively,
+the post-redirect routing (Stripe/Google return → correct tab + banner) and the
+review-moderation flow (approve/reject/restore). Lint + build remain the required
+DoD; run the relevant check when touching `App.jsx` routing/banners or the
+Reviews Manager (`ReviewList.jsx`).
 
 Supabase (CLI): `supabase link --project-ref <ref>`, `supabase db push`,
 `supabase functions deploy <name>`, `supabase secrets set KEY=value`.
@@ -88,7 +91,7 @@ src/
     FirstLocation.jsx        # onboarding when a live agency has no locations yet
     LocationsManager.jsx     # add/edit/delete locations (modal off the tenant selector)
     AioDashboard.jsx         # AI-visibility gauge, query audit, checklist, "Run AI Audit"
-    ReviewList.jsx           # review moderation + AI reply drafting
+    ReviewList.jsx           # review moderation (approve/reject/restore) + AI reply drafting
     CompetitorBattleboard.jsx
     SocialGenerator.jsx      # review -> PNG via canvas
     BrandingSettings.jsx     # white-label config + "Connect Google" button
@@ -102,7 +105,7 @@ public/
   widget-test.html           # local harness for widget.js (+ widget-sample.json)
 supabase/
   config.toml
-  migrations/                # 0001 schema+RLS, 0002 storage, 0003 hardening, 0004 fn grants
+  migrations/                # 0001 schema+RLS, 0002 storage, 0003 hardening, 0004 fn grants, 0005 review reject-reason
   functions/                 # edge functions (see ARCHITECTURE.md for the map)
 .env.example                 # full env-var reference
 BACKEND.md                   # deploy runbook
@@ -128,7 +131,7 @@ BACKEND.md                   # deploy runbook
 - **Live mode** (`.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`):
   auth is enforced, reads/writes hit Postgres (RLS-scoped), edge functions run.
 - A live project is already provisioned: **`vouchrank`** (ref
-  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0004 applied. Edge functions
+  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0005 applied. Edge functions
   are **deployed + secrets set** (2026-06-23); Stripe is in **test mode** and AIO runs
   Gemini-only — see [BACKEND.md](BACKEND.md) → "Activation status".
 
