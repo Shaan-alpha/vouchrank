@@ -42,7 +42,7 @@ every screen to live Postgres data behind auth. The single seam is `src/lib/api.
 
 ## Live project (already provisioned)
 A free Supabase project (ref `fdpmuyllyqrmhljetzco`, region `us-east-1`)
-has been created and **migrations 0001–0004 are already applied** to it.
+has been created and **migrations 0001–0005 are already applied** to it.
 (The Supabase dashboard still labels this project `reviewpulse` from before the
 rename — rename it there if you want it to read `vouchrank`; the ref is unchanged.) The frontend
 `.env` (gitignored) points at it. Security/performance advisors are clean apart from
@@ -58,11 +58,12 @@ The hosted project is **live**: all **9** edge functions deployed and **11** sec
 - **Resend** — key set; domain verification still required before sending.
 - **Frontend** — not yet hosted; `APP_BASE_URL=http://localhost:5173`. Update it and re-run `secrets set` when you deploy the frontend.
 - **Twilio** — not configured (A2P 10DLC).
+- **Schema** — migration `0005` (review moderation: `review_reject_reason` enum + `reviews.reject_reason`/`reject_note` columns) applied **2026-06-25**; advisors still clean.
 
 > Secrets are managed with `supabase secrets set --env-file supabase/.env.secrets` (a gitignored bundle of the non-`VITE_`, non-`SUPABASE_` vars). `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` are auto-injected by the platform — don't set them.
 
 ## Deploy order
-1. `supabase link --project-ref fdpmuyllyqrmhljetzco` then `supabase db push` (migrations 0001–0004; already applied on the hosted project — this syncs a fresh/local DB).
+1. `supabase link --project-ref fdpmuyllyqrmhljetzco` then `supabase db push` (migrations 0001–0005; already applied on the hosted project — this syncs a fresh/local DB).
 2. In the dashboard: enable Email auth; confirm the signup trigger ran.
 3. `supabase secrets set` all server vars from `.env.example` (everything **without** `VITE_`).
 4. `supabase functions deploy` for each function above.

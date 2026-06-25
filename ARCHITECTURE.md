@@ -62,7 +62,7 @@ Access control:
 | `agency_members` | user ↔ agency with role |
 | `locations` | End-businesses an agency manages (branding, `google_place_id`, AIO score) |
 | `location_google_credentials` | OAuth tokens + recorded consent (service-role only) |
-| `reviews` | Source, rating, sentiment, status, `is_public`, text/video, AI reply |
+| `reviews` | Source, rating, sentiment, status (`pending`/`approved`/`rejected`) + reject reason/note, `is_public`, text/video, AI reply |
 | `aio_audits` / `aio_queries` | AI-visibility score + per-query LLM results |
 | `aio_checklist` | Optimization action items |
 | `competitors` | Battleboard comparison rows |
@@ -70,7 +70,9 @@ Access control:
 
 Migrations: `0001` schema + RLS + helpers + signup trigger · `0002` `review-videos`
 storage bucket · `0003` advisor hardening (drop redundant SELECT policies, remove
-bucket-listing policy, revoke `anon` execute) · `0004` revoke trigger-fn execute.
+bucket-listing policy, revoke `anon` execute) · `0004` revoke trigger-fn execute ·
+`0005` `review_reject_reason` enum + `reviews.reject_reason`/`reject_note` columns
+(moderation).
 
 ## Edge Functions
 
@@ -92,8 +94,10 @@ Shared helpers (CORS, service-role client, user resolution) live in
 ## Key request flows
 
 - **Customer leaves a review:** funnel → `submit-review` (service role) → `reviews`
-  (status `pending`). Agency approves in `ReviewList`. Low ratings are stored, never
-  suppressed.
+  (status `pending`). Agency approves/rejects in `ReviewList` — rejecting requires a
+  non-sentiment reason (spam/fake/abusive/off-topic/legal/other). Low ratings are
+  stored, never suppressed; display is opt-out (everything `is_public` and not
+  `rejected` shows). See [COMPLIANCE.md](COMPLIANCE.md).
 - **Embedded widget loads:** client site `widget.js` → `widget-reviews` (service
   role, CORS `*`) → returns `is_public`, non-rejected reviews (any rating) →
   rendered on the client's page.
