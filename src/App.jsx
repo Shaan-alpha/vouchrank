@@ -116,6 +116,22 @@ export default function App() {
     api.saveReviewReply(reviewId, replyText).catch(() => {});
   };
 
+  const handleSetReviewStatus = (reviewId, status, meta = {}) => {
+    setReviews((prev) =>
+      prev.map((r) =>
+        r.id === reviewId
+          ? {
+              ...r,
+              status,
+              rejectReason: status === 'rejected' ? (meta.reason ?? null) : null,
+              rejectNote: status === 'rejected' ? (meta.note ?? null) : null,
+            }
+          : r,
+      ),
+    );
+    api.setReviewStatus(reviewId, status, meta).catch(() => {});
+  };
+
   // Funnel submissions: optimistic local insert + persist via Edge Function.
   const handleAddReview = (newReview) => {
     const reviewWithId = { ...newReview, id: `r-gen-${Date.now()}` };
@@ -309,7 +325,11 @@ export default function App() {
               <AioDashboard company={selectedCompany} auditData={companyAudit} onToggleChecklist={handleToggleChecklist} onRunAudit={handleRunAudit} />
             )}
             {activeTab === 'reviews' && (
-              <ReviewList reviews={reviews} onAddReviewReply={handleAddReviewReply} />
+              <ReviewList
+                reviews={reviews}
+                onAddReviewReply={handleAddReviewReply}
+                onSetReviewStatus={handleSetReviewStatus}
+              />
             )}
             {activeTab === 'competitors' && (
               <CompetitorBattleboard company={selectedCompany} competitors={competitors} />
