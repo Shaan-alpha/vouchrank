@@ -32,13 +32,15 @@ every screen to live Postgres data behind auth. The single seam is `src/lib/api.
 |---|---|---|
 | `submit-review` | public | Funnel posts here; validates, rate-limits, inserts (no anon table access) |
 | `widget-reviews` | public | Public reviews for the embeddable widget (CORS `*`) |
+| `public-location` | public | One location's funnel-safe branding for the public funnel |
+| `create-upload-url` | public | One-object signed upload URL for a review video |
 | `stripe-checkout` | user | Creates a subscription Checkout session |
 | `stripe-webhook` | signature | Syncs subscription status → `agencies.plan` / `max_locations` |
-| `google-oauth-start` | user | Returns Google consent URL for a location |
-| `google-oauth-callback` | public | Stores refresh token + recorded consent |
-| `sync-google-reviews` | service | Pulls GBP reviews (v4) into `reviews` |
-| `run-aio-audit` | service | Queries LLMs, computes AI-visibility score |
-| `send-review-request` | user | Sends compliant SMS/email request, logs to `campaigns` |
+| `google-oauth-start` | user (owns location) | Returns Google consent URL; HMAC-signs `state` |
+| `google-oauth-callback` | public | Verifies signed `state`, stores refresh token + recorded consent |
+| `sync-google-reviews` | owner / cron | Pulls GBP reviews (v4) into `reviews` |
+| `run-aio-audit` | owner / cron | Queries LLMs, computes AI-visibility score |
+| `send-review-request` | user (owns location) | Sends compliant SMS/email request, logs to `campaigns` |
 
 ## Live project (already provisioned)
 A free Supabase project (ref `fdpmuyllyqrmhljetzco`, region `us-east-1`)
@@ -60,6 +62,17 @@ The hosted project is **live**: all **9** edge functions deployed and **11** sec
 - **Twilio** — not configured (A2P 10DLC).
 - **Schema** — migration `0005` (review moderation: `review_reject_reason` enum + `reviews.reject_reason`/`reject_note` columns) applied **2026-06-25**; advisors still clean.
 
+> **Audit hardening — DEPLOYED to the hosted project 2026-06-26 (via the management API).**
+> Migration `0006` applied (advisors still clean) and all changed + new edge functions
+> deployed: `public-location`, `create-upload-url` (new), plus `submit-review`,
+> `google-oauth-start`, `google-oauth-callback`, `run-aio-audit`, `sync-google-reviews`,
+> `send-review-request`. Agency `plan`/`max_locations` are now client-immutable
+> (service-role / Stripe webhook only). **Still pending (optional):** set
+> `OAUTH_STATE_SECRET` and `FUNCTION_INTERNAL_SECRET` — OAuth state currently falls back
+> to the service-role key, and the internal secret is only needed once cron calls the
+> service functions. Note: `0006` was applied via the management API, so a later
+> `supabase db push` from an authed CLI may re-run it — it's idempotent (safe no-op).
+
 > Secrets are managed with `supabase secrets set --env-file supabase/.env.secrets` (a gitignored bundle of the non-`VITE_`, non-`SUPABASE_` vars). `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` are auto-injected by the platform — don't set them.
 
 ## Deploy order
@@ -75,7 +88,10 @@ The hosted project is **live**: all **9** edge functions deployed and **11** sec
 > The embed snippet points at the app origin by default; for production, serve
 > `widget.js` from a stable origin/CDN and ensure client `data-api` targets the
 > deployed `widget-reviews` URL.
-8. Set `VITE_*` vars in the frontend host (e.g. Vercel) and deploy.
+8. Set `VITE_*` vars in the frontend host (e.g. Vercel) and deploy. The app is a
+   client-side SPA, so the host **must** rewrite unknown paths to `/index.html`,
+   or the public funnel route `/r/:id` 404s. `vercel.json` (repo root) does this
+   for Vercel; on Netlify use `/* /index.html 200` in `_redirects`.
 9. Schedule cron (Supabase Scheduled Functions / `pg_cron`) for `sync-google-reviews` and `run-aio-audit` per connected location.
 
 ## Compliance (built in)

@@ -15,6 +15,29 @@ import {
 
 export const demoMode = !isSupabaseConfigured;
 
+// Seeded onto a new location (live mode) so the AIO dashboard has starter
+// action items instead of an empty list. Generic, non-tenant-specific.
+const DEFAULT_CHECKLIST = [
+  {
+    badge: 'Keyword GAP',
+    title: 'Collect reviews that name your top services',
+    description:
+      'AI search engines recommend businesses whose reviews repeat the service keywords customers search for. Ask happy customers to mention specifics.',
+  },
+  {
+    badge: 'Review Volume',
+    title: 'Reach 25+ public reviews',
+    description:
+      'Higher review volume increases the confidence AI search engines place in recommending you over competitors.',
+  },
+  {
+    badge: 'Integration',
+    title: 'Embed the reviews widget on the homepage',
+    description:
+      'Crawlable, structured review content on the client site helps LLMs verify your reputation claims.',
+  },
+];
+
 // ---- Row -> UI shape mappers (keep the UI components unchanged) ----
 const toCompany = (loc) => ({
   id: loc.id,
@@ -101,6 +124,12 @@ export async function createLocation({ name, category }) {
     .select('*')
     .single();
   if (error) throw error;
+  // Seed starter optimization items (non-fatal if it fails).
+  try {
+    await supabase
+      .from('aio_checklist')
+      .insert(DEFAULT_CHECKLIST.map((c) => ({ ...c, location_id: data.id, agency_id: agency.id })));
+  } catch { /* dashboard still works without seeded items */ }
   return toCompany(data);
 }
 
@@ -113,6 +142,8 @@ export async function updateLocation(id, fields) {
   if (fields.name !== undefined) patch.name = fields.name;
   if (fields.category !== undefined) patch.category = fields.category;
   if (fields.domain !== undefined) patch.domain = fields.domain;
+  if (fields.colors !== undefined) patch.colors = fields.colors;
+  if (fields.logoText !== undefined) patch.logo_text = fields.logoText;
   const { data, error } = await supabase
     .from('locations')
     .update(patch)
@@ -154,13 +185,36 @@ export async function getAudit(locationId) {
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  if (!audit) return { rating: 0, queries: [], checklist: [] };
 
-  const [{ data: queries }, { data: checklist }] = await Promise.all([
-    supabase.from('aio_queries').select('*').eq('audit_id', audit.id),
-    supabase.from('aio_checklist').select('*').eq('location_id', locationId),
-  ]);
-  return { rating: audit.rating, queries: queries || [], checklist: checklist || [] };
+  // Checklist is always fetched (it's seeded on location creation and exists
+  // independently of whether an audit has run yet).
+  const { data: checklist } = await supabase
+    .from('aio_checklist')
+    .select('*')
+    .eq('location_id', locationId)
+    .order('created_at');
+
+  let queries = [];
+  if (audit) {
+    const { data: q } = await supabase.from('aio_queries').select('*').eq('audit_id', audit.id);
+    queries = q || [];
+  }
+  return { rating: audit?.rating ?? 0, queries, checklist: checklist || [] };
+}
+
+// Public funnel: fetch one location's funnel-safe branding without auth. Demo
+// mode reads mock data; live mode hits the public-location Edge Function (no
+// anon table access — see migration 0006 / the H1 fix).
+export async function getPublicLocation(locationId) {
+  if (demoMode) {
+    return MOCK_COMPANIES.find((c) => c.id === locationId) || null;
+  }
+  const { data, error } = await supabase.functions.invoke('public-location', {
+    body: { location: locationId },
+  });
+  if (error) throw error;
+  if (!data || data.error) return null;
+  return data;
 }
 
 export async function getCompetitors(locationId) {
@@ -263,13 +317,13 @@ export async function runAioAudit(locationId, city) {
   return data;
 }
 
-export async function sendReviewRequest({ locationId, channel, recipient, firstName }) {
+export async function sendReviewRequest({ locationId, channel, recipient, firstName, message }) {
   if (demoMode) {
     await new Promise((r) => setTimeout(r, 1000));
     return { demo: true, ok: true };
   }
   const { data, error } = await supabase.functions.invoke('send-review-request', {
-    body: { locationId, channel, recipient, firstName },
+    body: { locationId, channel, recipient, firstName, message },
   });
   if (error) throw error;
   return data;
@@ -281,11 +335,16 @@ export async function sendReviewRequest({ locationId, channel, recipient, firstN
 export async function uploadReviewVideo(blob, locationId) {
   if (demoMode || !blob) return null;
   const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
-  const path = `${locationId}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from('review-videos').upload(path, blob, {
-    contentType: blob.type,
-    upsert: false,
+  // Ask the Edge Function for a one-object signed upload URL, then upload to it.
+  // The funnel customer is anonymous, so we no longer rely on a blanket anon
+  // bucket-insert policy (removed in migration 0006 / the M2 fix).
+  const { data: signed, error: signErr } = await supabase.functions.invoke('create-upload-url', {
+    body: { locationId, ext },
   });
-  if (error) throw error;
-  return supabase.storage.from('review-videos').getPublicUrl(path).data.publicUrl;
+  if (signErr) throw signErr;
+  const { error: upErr } = await supabase.storage
+    .from('review-videos')
+    .uploadToSignedUrl(signed.path, signed.token, blob, { contentType: blob.type });
+  if (upErr) throw upErr;
+  return supabase.storage.from('review-videos').getPublicUrl(signed.path).data.publicUrl;
 }

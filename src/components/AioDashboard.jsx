@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Search, CheckSquare, Info, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Sparkles, Search, CheckSquare, AlertTriangle, RefreshCw } from 'lucide-react';
 
 export default function AioDashboard({ company, auditData, onToggleChecklist, onRunAudit }) {
   const [auditing, setAuditing] = useState(false);
@@ -16,14 +16,11 @@ export default function AioDashboard({ company, auditData, onToggleChecklist, on
 
   if (!auditData) return null;
 
-  // Calculate dynamic rating based on completed checklist items
+  // Show the real audit score. (Checklist completion is surfaced separately
+  // below — ticking an action item must NOT inflate the measured score.)
   const totalItems = auditData.checklist.length;
-  const completedItems = auditData.checklist.filter(item => item.checked).length;
-  // Dynamic calculation to make it interactive: baseline score + bonus for checked items
-  const baseScore = auditData.rating;
-  const maxBonus = 100 - baseScore;
-  const bonusPerItem = totalItems > 0 ? maxBonus / totalItems : 0;
-  const displayRating = Math.round(baseScore + (completedItems * bonusPerItem));
+  const completedItems = auditData.checklist.filter((item) => item.checked).length;
+  const displayRating = Math.max(0, Math.min(100, Math.round(auditData.rating)));
 
   // Circle path mathematics
   const radius = 65;
@@ -80,13 +77,9 @@ export default function AioDashboard({ company, auditData, onToggleChecklist, on
               This rating measures how frequently and favorably LLM search engines (Gemini, ChatGPT, Perplexity) recommend <strong>{company.name}</strong> for industry keywords.
             </p>
             <div style={{ display: 'flex', gap: '16px', marginTop: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                <TrendingUp style={{ color: 'var(--success)', width: '16px' }} />
-                <span style={{ color: 'var(--success)', fontWeight: '600' }}>+8% this month</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                <Info style={{ width: '14px' }} />
-                <span>Updated 2 hours ago</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                <CheckSquare style={{ width: '14px', color: 'var(--agency-primary)' }} />
+                <span>{completedItems} of {totalItems} optimization {totalItems === 1 ? 'item' : 'items'} complete</span>
               </div>
             </div>
           </div>

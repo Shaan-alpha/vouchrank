@@ -41,6 +41,7 @@ export default function Campaigns({ company, campaignData }) {
         channel: 'sms',
         recipient: recipientPhone,
         firstName: recipientName,
+        message: smsText,
       });
       setSendingState('sent');
       setSentHistory((prev) => [

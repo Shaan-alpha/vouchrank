@@ -7,6 +7,27 @@
 import { corsHeaders, json } from '../_shared/cors.ts';
 import { supabaseAdmin, getUser, getAgencyForUser } from '../_shared/supabaseAdmin.ts';
 
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+const isEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
+const isPhone = (s: string) => /^\+?[0-9][0-9\s().-]{6,19}$/.test(s);
+
+// Build the SMS body from an optional agency template. Placeholders are filled
+// and any link in the template is forced to the compliant funnel link, so every
+// recipient reaches the SAME funnel regardless of the template (FTC/Google).
+function buildSms(template: string | undefined, name: string, business: string, link: string): string {
+  if (!template || !template.trim()) {
+    return `Hi ${name}! Thanks for choosing ${business}. Mind sharing your honest feedback? ${link}`;
+  }
+  let body = template
+    .replace(/\[First Name\]/g, name)
+    .replace(/\[Business Name\]/g, business)
+    .replace(/https?:\/\/\S+/g, link);
+  if (!body.includes(link)) body += ` ${link}`;
+  return body;
+}
+
 async function sendSms(to: string, body: string): Promise<string> {
   const sid = Deno.env.get('TWILIO_ACCOUNT_SID')!;
   const token = Deno.env.get('TWILIO_AUTH_TOKEN')!;
@@ -46,7 +67,11 @@ Deno.serve(async (req) => {
     const member = await getAgencyForUser(user.id);
     if (!member) return json({ error: 'forbidden' }, 403);
 
-    const { locationId, channel, recipient, firstName } = await req.json();
+    const { locationId, channel, recipient, firstName, message } = await req.json();
+
+    if (channel === 'sms' ? !isPhone(String(recipient ?? '')) : !isEmail(String(recipient ?? ''))) {
+      return json({ error: 'invalid_recipient' }, 400);
+    }
 
     const { data: loc } = await supabaseAdmin
       .from('locations')
@@ -57,21 +82,18 @@ Deno.serve(async (req) => {
 
     const base = Deno.env.get('APP_BASE_URL') ?? 'https://app.vouchrank.com';
     const link = `${base}/r/${loc.id}`;
-    const name = firstName || 'there';
+    const name = (firstName || 'there').slice(0, 80);
 
     let providerId = '';
     let status = 'sent';
     try {
       if (channel === 'sms') {
-        providerId = await sendSms(
-          recipient,
-          `Hi ${name}! Thanks for choosing ${loc.name}. Mind sharing your honest feedback? ${link}`,
-        );
+        providerId = await sendSms(recipient, buildSms(message, name, loc.name, link));
       } else {
         providerId = await sendEmail(
           recipient,
           `How was your experience with ${loc.name}?`,
-          `<p>Hi ${name},</p><p>Thank you for choosing ${loc.name}. We'd love your honest feedback — good or bad.</p><p><a href="${link}">Share your experience</a></p>`,
+          `<p>Hi ${escapeHtml(name)},</p><p>Thank you for choosing ${escapeHtml(loc.name)}. We'd love your honest feedback — good or bad.</p><p><a href="${link}">Share your experience</a></p>`,
         );
       }
     } catch (e) {

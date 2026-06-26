@@ -2,6 +2,7 @@
 // refresh token + recorded consent in location_google_credentials (service_role
 // only), then bounces the user back to the app. verify_jwt=false.
 import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
+import { verifyState } from '../_shared/state.ts';
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
@@ -11,10 +12,9 @@ Deno.serve(async (req) => {
 
   if (!code || !state) return Response.redirect(`${base}/locations?google=error`, 302);
 
-  let parsed: { locationId: string; userId: string };
-  try {
-    parsed = JSON.parse(atob(state));
-  } catch {
+  // Verify the HMAC signature + freshness; a forged/expired state is rejected.
+  const parsed = await verifyState<{ locationId: string; userId: string }>(state);
+  if (!parsed) {
     return Response.redirect(`${base}/locations?google=badstate`, 302);
   }
 

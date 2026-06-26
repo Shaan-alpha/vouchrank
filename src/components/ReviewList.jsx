@@ -380,7 +380,7 @@ export default function ReviewList({ reviews, onAddReviewReply, onSetReviewStatu
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                       <div className="reviewer-avatar" style={{ width: '28px', height: '28px', fontSize: '11px', background: 'var(--agency-primary)' }}>AI</div>
                       <div className="ai-reply-box" style={{ flexGrow: 1, marginTop: 0 }}>
-                        <div style={{ fontWeight: '600', fontSize: '11px', color: '#fff', marginBottom: '4px' }}>AI Reply Posted to Google:</div>
+                        <div style={{ fontWeight: '600', fontSize: '11px', color: '#fff', marginBottom: '4px' }}>Saved AI reply:</div>
                         {r.aiReply}
                       </div>
                     </div>
@@ -402,7 +402,7 @@ export default function ReviewList({ reviews, onAddReviewReply, onSetReviewStatu
                           <div className="ai-reply-actions">
                             <button className="btn-sm-action" onClick={() => setDraftingReviewId(null)}>Cancel</button>
                             <button className="btn-sm-action primary" onClick={() => handleSaveReply(r.id)} id={`btn-post-reply-${r.id}`}>
-                              Approve & Post to Google
+                              Save reply
                             </button>
                           </div>
                         </div>
@@ -516,6 +516,15 @@ export default function ReviewList({ reviews, onAddReviewReply, onSetReviewStatu
               </button>
             </div>
 
+            {activeVideo.videoUrl && /^https?:\/\//.test(activeVideo.videoUrl) ? (
+              <video
+                src={activeVideo.videoUrl}
+                controls
+                autoPlay
+                playsInline
+                style={{ width: '100%', borderRadius: '12px', background: '#000', maxHeight: '60vh' }}
+              />
+            ) : (
             <div className="simulated-video-player">
               <div className="simulated-video-track">
                 {isPlaying ? (
@@ -553,6 +562,7 @@ export default function ReviewList({ reviews, onAddReviewReply, onSetReviewStatu
                 </span>
               </div>
             </div>
+            )}
           </div>
         </div>
       )}

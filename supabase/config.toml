@@ -26,6 +26,12 @@ verify_jwt = false   # public funnel endpoint; validates + rate-limits internall
 [functions.widget-reviews]
 verify_jwt = false   # public widget endpoint; read-only, CORS *
 
+[functions.public-location]
+verify_jwt = false   # public funnel branding read; single location, safe fields only
+
+[functions.create-upload-url]
+verify_jwt = false   # public funnel video upload; mints a one-object signed URL
+
 [functions.stripe-webhook]
 verify_jwt = false   # Stripe calls this; verified via signature
 

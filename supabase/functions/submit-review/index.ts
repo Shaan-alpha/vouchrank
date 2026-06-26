@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       .select('id', { count: 'exact', head: true })
       .eq('location_id', locationId)
       .gte('created_at', since);
-    if ((count ?? 0) > 20) return json({ error: 'rate_limited' }, 429);
+    if ((count ?? 0) >= 20) return json({ error: 'rate_limited' }, 429);
 
     const isPrivate = source === 'private';
     const { error } = await supabaseAdmin.from('reviews').insert({
