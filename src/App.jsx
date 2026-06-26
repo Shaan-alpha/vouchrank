@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import {
   Sparkles, Star, Share2, Sliders, Settings, Eye, Building2,
   ArrowLeft, Target, Smartphone, LogOut, CreditCard,
@@ -7,19 +7,26 @@ import {
 import { supabase, isSupabaseConfigured } from './lib/supabaseClient';
 import * as api from './lib/api';
 
+// Auth + onboarding gates are on the critical path → keep eager. The heavier
+// per-tab views and modals load on demand to keep the initial bundle small.
 import Auth from './components/Auth';
-import AioDashboard from './components/AioDashboard';
-import ReviewList from './components/ReviewList';
-import SocialGenerator from './components/SocialGenerator';
-import BrandingSettings from './components/BrandingSettings';
-import HarvesterFunnel from './components/HarvesterFunnel';
-import WidgetsDemo from './components/WidgetsDemo';
-import CompetitorBattleboard from './components/CompetitorBattleboard';
-import Campaigns from './components/Campaigns';
-import Billing from './components/Billing';
 import FirstLocation from './components/FirstLocation';
-import LocationsManager from './components/LocationsManager';
+const AioDashboard = lazy(() => import('./components/AioDashboard'));
+const ReviewList = lazy(() => import('./components/ReviewList'));
+const SocialGenerator = lazy(() => import('./components/SocialGenerator'));
+const BrandingSettings = lazy(() => import('./components/BrandingSettings'));
+const HarvesterFunnel = lazy(() => import('./components/HarvesterFunnel'));
+const WidgetsDemo = lazy(() => import('./components/WidgetsDemo'));
+const CompetitorBattleboard = lazy(() => import('./components/CompetitorBattleboard'));
+const Campaigns = lazy(() => import('./components/Campaigns'));
+const Billing = lazy(() => import('./components/Billing'));
+const LocationsManager = lazy(() => import('./components/LocationsManager'));
 import { initialTabFromReturn, initialNoticeFromReturn } from './lib/returnParams';
+
+// Small inline fallback while a lazily-loaded view streams in.
+const ViewLoading = () => (
+  <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>Loading…</div>
+);
 
 export default function App() {
   const [activeRole, setActiveRole] = useState('Agency');
@@ -253,7 +260,9 @@ export default function App() {
             </button>
           </div>
 
-          <HarvesterFunnel company={selectedCompany} onAddReview={handleAddReview} />
+          <Suspense fallback={<ViewLoading />}>
+            <HarvesterFunnel company={selectedCompany} onAddReview={handleAddReview} />
+          </Suspense>
         </div>
       ) : (
         <div className="app-container">
@@ -331,6 +340,7 @@ export default function App() {
               </div>
             </div>
 
+            <Suspense fallback={<ViewLoading />}>
             {activeTab === 'dashboard' && companyAudit && (
               <AioDashboard company={selectedCompany} auditData={companyAudit} onToggleChecklist={handleToggleChecklist} onRunAudit={handleRunAudit} />
             )}
@@ -357,19 +367,22 @@ export default function App() {
               <BrandingSettings key={selectedCompany.id} company={selectedCompany} onUpdateCompany={handleUpdateCompany} />
             )}
             {activeTab === 'billing' && <Billing />}
+            </Suspense>
           </main>
 
           {showLocationsModal && (
-            <LocationsManager
-              companies={companies}
-              selectedId={selectedCompany.id}
-              maxLocations={agency?.max_locations ?? 15}
-              onAdd={handleAddLocation}
-              onUpdate={handleUpdateLocation}
-              onDelete={handleDeleteLocation}
-              onSelect={handleSelectLocation}
-              onClose={() => setShowLocationsModal(false)}
-            />
+            <Suspense fallback={null}>
+              <LocationsManager
+                companies={companies}
+                selectedId={selectedCompany.id}
+                maxLocations={agency?.max_locations ?? 15}
+                onAdd={handleAddLocation}
+                onUpdate={handleUpdateLocation}
+                onDelete={handleDeleteLocation}
+                onSelect={handleSelectLocation}
+                onClose={() => setShowLocationsModal(false)}
+              />
+            </Suspense>
           )}
         </div>
       )}
