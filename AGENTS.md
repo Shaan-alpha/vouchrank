@@ -131,10 +131,11 @@ BACKEND.md                   # deploy runbook
 - **Live mode** (`.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`):
   auth is enforced, reads/writes hit Postgres (RLS-scoped), edge functions run.
 - A live project is already provisioned: **`vouchrank`** (ref
-  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0005 applied (0006
-  authored, pending push). Edge functions are **deployed + secrets set** (2026-06-23;
-  the two new public functions are pending deploy); Stripe is in **test mode** and AIO
-  runs Gemini-only — see [BACKEND.md](BACKEND.md) → "Activation status".
+  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0006 applied. All 11
+  edge functions are **deployed** (2026-06-23 base + 2026-06-26 audit hardening);
+  Stripe is in **test mode** and AIO runs Gemini-only — see [BACKEND.md](BACKEND.md)
+  → "Activation status". (`OAUTH_STATE_SECRET`/`FUNCTION_INTERNAL_SECRET` not yet set —
+  both optional.)
 
 ## Before you change X, read Y
 - Review funnel / sentiment / routing → [COMPLIANCE.md](COMPLIANCE.md)

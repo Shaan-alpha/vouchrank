@@ -62,15 +62,16 @@ The hosted project is **live**: all **9** edge functions deployed and **11** sec
 - **Twilio** — not configured (A2P 10DLC).
 - **Schema** — migration `0005` (review moderation: `review_reject_reason` enum + `reviews.reject_reason`/`reject_note` columns) applied **2026-06-25**; advisors still clean.
 
-> **Pending deploy — audit hardening (2026-06-26).** Migration `0006` and two new
-> functions (`public-location`, `create-upload-url`) are authored but **not yet
-> pushed/deployed** to the hosted project. To activate: `supabase db push`, then
-> `supabase functions deploy public-location create-upload-url google-oauth-start
-> google-oauth-callback run-aio-audit sync-google-reviews send-review-request submit-review`
-> (the changed + new functions), then re-run advisors. Optionally set
-> `OAUTH_STATE_SECRET` and `FUNCTION_INTERNAL_SECRET` (see `.env.example`).
-> After `0006`, agency `plan`/`max_locations` are no longer client-writable, so
-> entitlements must be changed via the Stripe webhook or service role.
+> **Audit hardening — DEPLOYED to the hosted project 2026-06-26 (via the management API).**
+> Migration `0006` applied (advisors still clean) and all changed + new edge functions
+> deployed: `public-location`, `create-upload-url` (new), plus `submit-review`,
+> `google-oauth-start`, `google-oauth-callback`, `run-aio-audit`, `sync-google-reviews`,
+> `send-review-request`. Agency `plan`/`max_locations` are now client-immutable
+> (service-role / Stripe webhook only). **Still pending (optional):** set
+> `OAUTH_STATE_SECRET` and `FUNCTION_INTERNAL_SECRET` — OAuth state currently falls back
+> to the service-role key, and the internal secret is only needed once cron calls the
+> service functions. Note: `0006` was applied via the management API, so a later
+> `supabase db push` from an authed CLI may re-run it — it's idempotent (safe no-op).
 
 > Secrets are managed with `supabase secrets set --env-file supabase/.env.secrets` (a gitignored bundle of the non-`VITE_`, non-`SUPABASE_` vars). `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` are auto-injected by the platform — don't set them.
 
