@@ -82,7 +82,9 @@
 
   function render(data) {
     var loc = data.location || {};
-    var accent = (loc.colors && loc.colors.primary) || '#8b5cf6';
+    // Escape the accent: it lands in inline style="…" attributes, so an
+    // unescaped value could break out and inject markup. esc() neutralizes quotes.
+    var accent = esc((loc.colors && loc.colors.primary) || '#8b5cf6');
     var reviews = data.reviews || [];
     var wrap = layout === 'carousel'
       ? 'display:flex;gap:16px;overflow-x:auto;padding:4px 0'

@@ -150,6 +150,16 @@ export default function App() {
   const handleUpdateCompany = (updatedCompany) => {
     setCompanies((prev) => prev.map((c) => (c.id === updatedCompany.id ? updatedCompany : c)));
     setSelectedCompany(updatedCompany);
+    // Persist branding (name/category/domain/colors/logo) — not just local state.
+    api
+      .updateLocation(updatedCompany.id, {
+        name: updatedCompany.name,
+        category: updatedCompany.category,
+        domain: updatedCompany.domain,
+        colors: updatedCompany.colors,
+        logoText: updatedCompany.logoText,
+      })
+      .catch(() => {});
   };
 
   // Clears stale per-location data so keyed children remount fresh once the

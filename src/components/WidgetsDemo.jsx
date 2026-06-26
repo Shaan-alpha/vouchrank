@@ -9,7 +9,7 @@ export default function WidgetsDemo({ reviews, company }) {
 
   // Show the same set the real widget shows: public, non-rejected — any rating
   // (no score filter, per COMPLIANCE.md).
-  const positiveReviews = reviews.filter((r) => r.isPublic !== false);
+  const positiveReviews = reviews.filter((r) => r.isPublic !== false && r.status !== 'rejected');
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const widgetApi = supabaseUrl

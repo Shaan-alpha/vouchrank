@@ -2,7 +2,7 @@
 // Run on a schedule (Supabase Cron) per connected location, or invoke on demand.
 // Reviews API: GET accounts/{accountId}/locations/{locationId}/reviews (300 qpm).
 import { json } from '../_shared/cors.ts';
-import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
+import { supabaseAdmin, getCaller } from '../_shared/supabaseAdmin.ts';
 
 async function freshAccessToken(refreshToken: string): Promise<string> {
   const res = await fetch('https://oauth2.googleapis.com/token', {
@@ -24,6 +24,10 @@ const sentimentOf = (n: number) => (n >= 4 ? 'positive' : n === 3 ? 'neutral' : 
 
 Deno.serve(async (req) => {
   try {
+    // Authorize: cron (internal secret) or a signed-in user who owns the location.
+    const caller = await getCaller(req);
+    if (!caller.internal && !caller.member) return json({ error: 'unauthorized' }, 401);
+
     const { locationId } = await req.json();
 
     const { data: loc } = await supabaseAdmin
@@ -31,7 +35,11 @@ Deno.serve(async (req) => {
       .select('id, agency_id, google_account_id')
       .eq('id', locationId)
       .single();
-    if (!loc?.google_account_id) return json({ error: 'location_not_connected' }, 400);
+    if (!loc) return json({ error: 'no_location' }, 404);
+    if (!caller.internal && loc.agency_id !== caller.member!.agency_id) {
+      return json({ error: 'forbidden' }, 403);
+    }
+    if (!loc.google_account_id) return json({ error: 'location_not_connected' }, 400);
 
     const { data: cred } = await supabaseAdmin
       .from('location_google_credentials')

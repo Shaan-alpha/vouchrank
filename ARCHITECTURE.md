@@ -51,6 +51,15 @@ Access control:
   that agency"; `UPDATE` policies declare both `USING` and `WITH CHECK`.
 - `location_google_credentials` has **RLS enabled with no policies** → only the
   `service_role` (Edge Functions) can touch OAuth tokens.
+- `locations` is **not** anon-readable (no public SELECT policy). The public
+  funnel gets a single location's safe fields via the `public-location` Edge
+  Function — never a direct anon table read (migration 0006).
+- `agencies` entitlement columns (`plan`, `plan_status`, `max_locations`,
+  `stripe_*`) are **not** tenant-writable: `UPDATE` is granted to `authenticated`
+  only on branding columns, so a tenant can't self-upgrade their plan. The Stripe
+  webhook (service role) owns entitlements (migration 0006).
+- The per-plan location cap is enforced by a DB trigger (`enforce_location_cap`),
+  not just the UI (migration 0006).
 - New signups auto-create an agency + owner membership via the `handle_new_user`
   trigger on `auth.users`.
 
@@ -72,7 +81,8 @@ Migrations: `0001` schema + RLS + helpers + signup trigger · `0002` `review-vid
 storage bucket · `0003` advisor hardening (drop redundant SELECT policies, remove
 bucket-listing policy, revoke `anon` execute) · `0004` revoke trigger-fn execute ·
 `0005` `review_reject_reason` enum + `reviews.reject_reason`/`reject_note` columns
-(moderation).
+(moderation) · `0006` audit hardening (drop anon `locations` read, lock agency
+entitlement columns, remove anon video upload, enforce location cap).
 
 ## Edge Functions
 
@@ -80,20 +90,25 @@ bucket-listing policy, revoke `anon` execute) · `0004` revoke trigger-fn execut
 |---|---|---|
 | `submit-review` | public | Funnel posts here; validates, rate-limits, inserts (no anon table access) |
 | `widget-reviews` | public | Returns a location's public, non-rejected reviews for the embeddable widget (CORS `*`, cached 5 min) |
+| `public-location` | public | Returns ONE location's funnel-safe branding (name, category, logo, colors, place id) for the public funnel; replaces anon table reads |
+| `create-upload-url` | public | Mints a one-object signed upload URL for a review video (funnel customers are anon) |
 | `stripe-checkout` | user | Creates a subscription Checkout session |
 | `stripe-webhook` | signature | Syncs subscription → `agencies.plan` / `max_locations` |
-| `google-oauth-start` | user | Builds the Google consent URL for a location |
-| `google-oauth-callback` | public | Exchanges code, stores refresh token + consent |
-| `sync-google-reviews` | service | Pulls GBP reviews (v4) into `reviews` |
-| `run-aio-audit` | service | Queries LLMs, computes AI-visibility score |
-| `send-review-request` | user | Sends compliant SMS/email request, logs to `campaigns` |
+| `google-oauth-start` | user (owns location) | Builds the Google consent URL; verifies the location is in the caller's agency; HMAC-signs `state` |
+| `google-oauth-callback` | public | Verifies the signed `state`, exchanges code, stores refresh token + consent |
+| `sync-google-reviews` | owner / cron | Pulls GBP reviews (v4) into `reviews`; requires the caller to own the location or present the internal secret |
+| `run-aio-audit` | owner / cron | Queries LLMs (server-generated prompts only), computes AI-visibility score; same authorization as sync |
+| `send-review-request` | user (owns location) | Sends compliant SMS/email request, logs to `campaigns`; validates recipient, escapes email HTML |
 
-Shared helpers (CORS, service-role client, user resolution) live in
-`supabase/functions/_shared/`.
+Shared helpers live in `supabase/functions/_shared/`: `cors.ts`, `supabaseAdmin.ts`
+(service-role client, user/caller resolution), and `state.ts` (HMAC sign/verify
+for OAuth state).
 
 ## Key request flows
 
-- **Customer leaves a review:** funnel → `submit-review` (service role) → `reviews`
+- **Customer leaves a review:** the funnel is served at `/r/:locationId` (the link
+  in review requests), loads branding via `public-location`, records video through
+  a `create-upload-url` signed upload, then posts to `submit-review` (service role) → `reviews`
   (status `pending`). Agency approves/rejects in `ReviewList` — rejecting requires a
   non-sentiment reason (spam/fake/abusive/off-topic/legal/other). Low ratings are
   stored, never suppressed; display is opt-out (everything `is_public` and not

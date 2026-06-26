@@ -105,8 +105,8 @@ public/
   widget-test.html           # local harness for widget.js (+ widget-sample.json)
 supabase/
   config.toml
-  migrations/                # 0001 schema+RLS, 0002 storage, 0003 hardening, 0004 fn grants, 0005 review reject-reason
-  functions/                 # edge functions (see ARCHITECTURE.md for the map)
+  migrations/                # 0001 schema+RLS, 0002 storage, 0003 hardening, 0004 fn grants, 0005 review reject-reason, 0006 audit hardening
+  functions/                 # 11 edge functions (see ARCHITECTURE.md for the map)
 .env.example                 # full env-var reference
 BACKEND.md                   # deploy runbook
 ```
@@ -131,9 +131,10 @@ BACKEND.md                   # deploy runbook
 - **Live mode** (`.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`):
   auth is enforced, reads/writes hit Postgres (RLS-scoped), edge functions run.
 - A live project is already provisioned: **`vouchrank`** (ref
-  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0005 applied. Edge functions
-  are **deployed + secrets set** (2026-06-23); Stripe is in **test mode** and AIO runs
-  Gemini-only — see [BACKEND.md](BACKEND.md) → "Activation status".
+  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0005 applied (0006
+  authored, pending push). Edge functions are **deployed + secrets set** (2026-06-23;
+  the two new public functions are pending deploy); Stripe is in **test mode** and AIO
+  runs Gemini-only — see [BACKEND.md](BACKEND.md) → "Activation status".
 
 ## Before you change X, read Y
 - Review funnel / sentiment / routing → [COMPLIANCE.md](COMPLIANCE.md)

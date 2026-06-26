@@ -2,7 +2,8 @@
 // The agency user must explicitly grant access (Google requires written consent
 // to manage reviews on a client's behalf — we record consent on callback).
 import { corsHeaders, json } from '../_shared/cors.ts';
-import { getUser, getAgencyForUser } from '../_shared/supabaseAdmin.ts';
+import { supabaseAdmin, getUser, getAgencyForUser } from '../_shared/supabaseAdmin.ts';
+import { signState } from '../_shared/state.ts';
 
 const SCOPES = ['https://www.googleapis.com/auth/business.manage'];
 
@@ -16,8 +17,18 @@ Deno.serve(async (req) => {
     const member = await getAgencyForUser(user.id);
     if (!member) return json({ error: 'forbidden' }, 403);
 
-    // state ties the callback back to this location + user, signed via Supabase JWT context.
-    const state = btoa(JSON.stringify({ locationId, userId: user.id }));
+    // The location must belong to the caller's agency — otherwise a user could
+    // start a connect flow for another tenant's location.
+    const { data: loc } = await supabaseAdmin
+      .from('locations')
+      .select('id, agency_id')
+      .eq('id', locationId)
+      .single();
+    if (!loc || loc.agency_id !== member.agency_id) return json({ error: 'forbidden' }, 403);
+
+    // state ties the callback back to this location + user, HMAC-signed and
+    // time-bound so the callback can trust it (see _shared/state.ts).
+    const state = await signState({ locationId, userId: user.id });
 
     const params = new URLSearchParams({
       client_id: Deno.env.get('GOOGLE_OAUTH_CLIENT_ID')!,

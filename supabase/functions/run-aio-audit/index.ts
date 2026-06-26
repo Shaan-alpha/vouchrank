@@ -7,7 +7,7 @@
 // months. Defaults target the current generation (June 2026). Verify against
 // each provider's model list before production.
 import { json } from '../_shared/cors.ts';
-import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
+import { supabaseAdmin, getCaller } from '../_shared/supabaseAdmin.ts';
 
 const GEMINI_MODEL = Deno.env.get('AIO_GEMINI_MODEL') ?? 'gemini-3.5-flash';
 const OPENAI_MODEL = Deno.env.get('AIO_OPENAI_MODEL') ?? 'gpt-5.1';
@@ -74,7 +74,13 @@ function analyze(text: string, businessName: string) {
 
 Deno.serve(async (req) => {
   try {
-    const { locationId, city, queries: customQueries } = await req.json();
+    // Authorize: cron (internal secret) or a signed-in user who owns the location.
+    // Without this, anyone with the public key could burn the platform's LLM
+    // budget against arbitrary locations.
+    const caller = await getCaller(req);
+    if (!caller.internal && !caller.member) return json({ error: 'unauthorized' }, 401);
+
+    const { locationId, city } = await req.json();
 
     const { data: loc } = await supabaseAdmin
       .from('locations')
@@ -82,14 +88,18 @@ Deno.serve(async (req) => {
       .eq('id', locationId)
       .single();
     if (!loc) return json({ error: 'no_location' }, 404);
+    if (!caller.internal && loc.agency_id !== caller.member!.agency_id) {
+      return json({ error: 'forbidden' }, 403);
+    }
 
+    // Queries are server-generated only (no client-supplied prompts) so the
+    // function can't be used as a free, arbitrary LLM proxy on our keys.
     const where = city ? ` in ${city}` : '';
-    const queries: string[] =
-      customQueries ?? [
-        `Who are the best ${loc.category}${where}? List the top 5 by name.`,
-        `Recommend a highly-rated ${loc.category}${where}. List names in order.`,
-        `Which ${loc.category}${where} has the best reviews? Rank the top 5.`,
-      ];
+    const queries: string[] = [
+      `Who are the best ${loc.category}${where}? List the top 5 by name.`,
+      `Recommend a highly-rated ${loc.category}${where}. List names in order.`,
+      `Which ${loc.category}${where} has the best reviews? Rank the top 5.`,
+    ];
 
     const askers = [askGemini, askOpenAI, askPerplexity];
 
