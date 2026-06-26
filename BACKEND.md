@@ -87,7 +87,10 @@ The hosted project is **live**: all **9** edge functions deployed and **11** sec
 > The embed snippet points at the app origin by default; for production, serve
 > `widget.js` from a stable origin/CDN and ensure client `data-api` targets the
 > deployed `widget-reviews` URL.
-8. Set `VITE_*` vars in the frontend host (e.g. Vercel) and deploy.
+8. Set `VITE_*` vars in the frontend host (e.g. Vercel) and deploy. The app is a
+   client-side SPA, so the host **must** rewrite unknown paths to `/index.html`,
+   or the public funnel route `/r/:id` 404s. `vercel.json` (repo root) does this
+   for Vercel; on Netlify use `/* /index.html 200` in `_redirects`.
 9. Schedule cron (Supabase Scheduled Functions / `pg_cron`) for `sync-google-reviews` and `run-aio-audit` per connected location.
 
 ## Compliance (built in)
