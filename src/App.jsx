@@ -1,6 +1,6 @@
 import { useState, useEffect, Suspense, lazy } from 'react';
 import {
-  Sparkles, Star, Share2, Sliders, Settings, Eye, Building2,
+  Sparkles, Star, Share2, Sliders, Settings, Eye,
   ArrowLeft, Target, Smartphone, LogOut, CreditCard,
 } from 'lucide-react';
 
@@ -22,11 +22,11 @@ const Campaigns = lazy(() => import('./components/Campaigns'));
 const Billing = lazy(() => import('./components/Billing'));
 const LocationsManager = lazy(() => import('./components/LocationsManager'));
 import { initialTabFromReturn, initialNoticeFromReturn } from './lib/returnParams';
+import GlitchLoader from './components/GlitchLoader';
+import TenantSelector from './components/TenantSelector';
 
 // Small inline fallback while a lazily-loaded view streams in.
-const ViewLoading = () => (
-  <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>Loading…</div>
-);
+const ViewLoading = () => <GlitchLoader label="Loading" compact />;
 
 export default function App() {
   const [activeRole, setActiveRole] = useState('Agency');
@@ -212,14 +212,6 @@ export default function App() {
     setCampaignData(null);
   };
 
-  const handleCompanyChange = (e) => {
-    const comp = companies.find((c) => c.id === e.target.value);
-    if (comp) {
-      clearTenantData();
-      setSelectedCompany(comp);
-    }
-  };
-
   const handleSelectLocation = (id) => {
     const comp = companies.find((c) => c.id === id);
     if (comp && comp.id !== selectedCompany?.id) {
@@ -273,7 +265,7 @@ export default function App() {
 
   // --- Gates ---
   if (!authReady) {
-    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#030408', color: '#fff' }}>Loading…</div>;
+    return <GlitchLoader label="Loading" />;
   }
   if (isSupabaseConfigured && !session) return <Auth />;
   if (!selectedCompany) {
@@ -296,7 +288,7 @@ export default function App() {
     if (companiesLoaded && companies.length === 0) {
       return <FirstLocation onCreate={handleCreateLocation} />;
     }
-    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#030408', color: '#fff' }}>Setting up your workspace…</div>;
+    return <GlitchLoader label="Setting up your workspace" />;
   }
 
   return (
@@ -383,11 +375,8 @@ export default function App() {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Building2 style={{ color: 'var(--text-secondary)', width: '18px' }} />
-                <select className="tenant-selector" value={selectedCompany.id} onChange={handleCompanyChange} id="select-tenant-location">
-                  {companies.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                </select>
+              <div className="header-controls">
+                <TenantSelector companies={companies} selectedId={selectedCompany.id} onChange={handleSelectLocation} />
                 <button className="locations-icon-btn" onClick={() => setShowLocationsModal(true)} id="btn-manage-locations">
                   Manage
                 </button>

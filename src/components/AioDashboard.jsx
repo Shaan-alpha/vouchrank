@@ -34,7 +34,7 @@ export default function AioDashboard({ company, auditData, onToggleChecklist, on
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
         {/* Gauge Box */}
-        <div className="glass-card" style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+        <div className="glass-card" style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div className="gauge-circle" style={{ flexShrink: 0 }}>
             <svg className="gauge-svg">
               <defs>

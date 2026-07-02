@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import HarvesterFunnel from './HarvesterFunnel';
+import GlitchLoader from './GlitchLoader';
 import { getPublicLocation, submitPublicReview } from '../lib/api';
 
 /**
@@ -32,7 +33,7 @@ export default function PublicFunnel({ locationId }) {
     </div>
   );
 
-  if (company === undefined) return screen('Loading…');
+  if (company === undefined) return <GlitchLoader label="Loading" />;
   if (!company) return screen('This review link is no longer available.');
 
   return (
