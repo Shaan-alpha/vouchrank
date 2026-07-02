@@ -90,7 +90,7 @@ export default function Billing() {
         {notice && (
           <p style={{ marginTop: 12, fontSize: 12, color: 'var(--agency-secondary)' }}>{notice}</p>
         )}
-        {hasSubscription && (
+        {(hasSubscription || api.demoMode) && (
           <button
             className="btn-sm-action"
             style={{ marginTop: 14 }}
