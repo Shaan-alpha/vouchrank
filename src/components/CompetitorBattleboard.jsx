@@ -1,7 +1,22 @@
 import { Target, TrendingUp, Sparkles, Check } from 'lucide-react';
+import EmptyState from './EmptyState';
 
 export default function CompetitorBattleboard({ company, competitors }) {
   if (!competitors) return null;
+
+  // With no rivals there's nothing to compare against — a head-to-head board of
+  // one (plus placeholder insights) would mislead. Invite the real action instead.
+  if (competitors.length === 0) {
+    return (
+      <div className="glass-card">
+        <EmptyState
+          icon={Target}
+          title="No competitors tracked yet"
+          description="Add local rivals to benchmark review volume, video ratio, and AI-visibility side by side."
+        />
+      </div>
+    );
+  }
 
   // Add the current company to the head-to-head list for comparison
   const battleList = [

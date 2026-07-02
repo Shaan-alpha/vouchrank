@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sparkles, Search, CheckSquare, AlertTriangle, RefreshCw } from 'lucide-react';
+import EmptyState from './EmptyState';
 
 export default function AioDashboard({ company, auditData, onToggleChecklist, onRunAudit }) {
   const [auditing, setAuditing] = useState(false);
@@ -96,26 +97,40 @@ export default function AioDashboard({ company, auditData, onToggleChecklist, on
           </p>
 
           <div className="query-list">
-            {auditData.queries.map((q) => (
-              <div key={q.id} className="query-card">
-                <div className="query-info">
-                  <div className="query-text">"{q.query}"</div>
-                  <div className="query-sources">Checked on: {q.sources}</div>
+            {auditData.queries.length === 0 ? (
+              <EmptyState
+                icon={Search}
+                title="No audit run yet"
+                description="Run an AI audit to see how ChatGPT, Gemini, and Perplexity answer local searches for your business."
+                action={
+                  <button className="btn-primary-action" onClick={handleRun} disabled={auditing} style={{ fontSize: 13 }} id="btn-run-first-audit">
+                    <RefreshCw className={auditing ? 'spin' : ''} style={{ width: 14 }} />
+                    {auditing ? 'Auditing…' : 'Run AI Audit'}
+                  </button>
+                }
+              />
+            ) : (
+              auditData.queries.map((q) => (
+                <div key={q.id} className="query-card">
+                  <div className="query-info">
+                    <div className="query-text">"{q.query}"</div>
+                    <div className="query-sources">Checked on: {q.sources}</div>
+                  </div>
+                  <div>
+                    {q.recommended ? (
+                      <span className="query-status status-highlighted">
+                        Recommended #{q.rank}
+                      </span>
+                    ) : (
+                      <span className="query-status status-missed" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertTriangle style={{ width: '12px' }} />
+                        Not Recommended
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  {q.recommended ? (
-                    <span className="query-status status-highlighted">
-                      Recommended #{q.rank}
-                    </span>
-                  ) : (
-                    <span className="query-status status-missed" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <AlertTriangle style={{ width: '12px' }} />
-                      Not Recommended
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
