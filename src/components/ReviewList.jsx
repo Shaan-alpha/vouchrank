@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Star, Play, X, Sparkles, Filter, Video, MessageSquare, Clock, CheckCircle, Ban, RotateCcw, ShieldCheck } from 'lucide-react';
+import EmptyState from './EmptyState';
 
 // Non-sentiment reject reasons (see COMPLIANCE.md). No rating/sentiment option.
 const REJECT_REASONS = [
@@ -292,9 +293,17 @@ export default function ReviewList({ reviews, onAddReviewReply, onSetReviewStatu
         {/* Reviews List */}
         <div className="review-card-list">
           {filteredReviews.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-secondary)' }}>
-              No reviews match the selected filters.
-            </div>
+            reviews.length === 0 ? (
+              <EmptyState
+                icon={Star}
+                title="No reviews yet"
+                description="Share your review link or send a request from Campaigns — collected reviews land here for moderation."
+              />
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-secondary)' }}>
+                No reviews match the selected filters.
+              </div>
+            )
           ) : (
             filteredReviews.map((r) => (
               <div key={r.id} className="glass-card review-card" style={{ background: 'rgba(255,255,255,0.015)' }}>

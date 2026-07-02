@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Smartphone, Send, Clock, Plus } from 'lucide-react';
 import * as api from '../lib/api';
+import EmptyState from './EmptyState';
 
 // Keyed by location id in App and only rendered once campaignData has loaded,
 // so the useState initializers below always see the right tenant's data —
@@ -243,6 +244,13 @@ export default function Campaigns({ company, campaignData }) {
       <div className="glass-card">
         <h3 style={{ fontSize: '16px', marginBottom: '16px' }}>Sent Invites History Log</h3>
         
+        {sentHistory.length === 0 ? (
+          <EmptyState
+            icon={Send}
+            title="No invites sent yet"
+            description="Send a review request above — delivered SMS and email invites show up here with their click status."
+          />
+        ) : (
         <table className="battleboard-table" style={{ margin: 0 }}>
           <thead>
             <tr>
@@ -277,6 +285,7 @@ export default function Campaigns({ company, campaignData }) {
             ))}
           </tbody>
         </table>
+        )}
       </div>
 
     </div>

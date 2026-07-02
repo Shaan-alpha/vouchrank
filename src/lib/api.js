@@ -185,7 +185,9 @@ export async function getReviews(locationId) {
 }
 
 export async function getAudit(locationId) {
-  if (demoMode) return MOCK_AIO_AUDITS[locationId];
+  // Fall back to an empty (but truthy) shape so a freshly-added demo location
+  // renders the dashboard's "no audit yet" state instead of a blank tab.
+  if (demoMode) return MOCK_AIO_AUDITS[locationId] ?? { rating: 0, queries: [], checklist: [] };
   const { data: audit, error } = await supabase
     .from('aio_audits')
     .select('id, rating')
@@ -242,7 +244,7 @@ export async function getCompetitors(locationId) {
 }
 
 export async function getCampaigns(locationId) {
-  if (demoMode) return MOCK_CAMPAIGNS[locationId];
+  if (demoMode) return MOCK_CAMPAIGNS[locationId] ?? { history: [] };
   const { data, error } = await supabase
     .from('campaigns')
     .select('*')
