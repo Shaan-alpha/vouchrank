@@ -54,7 +54,23 @@ export default function Billing() {
     }
   };
 
+  // Once subscribed, plan changes / cancellation go through the Stripe billing
+  // portal — never a second Checkout (which would create a second subscription).
+  const handleManage = async () => {
+    setBusyPlan('__portal__');
+    setNotice('');
+    try {
+      const res = await api.openBillingPortal();
+      if (res?.demo) setNotice(res.message);
+    } catch (e) {
+      setNotice(e.message || 'Could not open the billing portal.');
+    } finally {
+      setBusyPlan(null);
+    }
+  };
+
   const currentPlan = agency?.plan;
+  const hasSubscription = Boolean(agency?.stripe_subscription_id);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -73,6 +89,17 @@ export default function Billing() {
         </p>
         {notice && (
           <p style={{ marginTop: 12, fontSize: 12, color: 'var(--agency-secondary)' }}>{notice}</p>
+        )}
+        {hasSubscription && (
+          <button
+            className="btn-sm-action"
+            style={{ marginTop: 14 }}
+            onClick={handleManage}
+            disabled={busyPlan === '__portal__'}
+            id="btn-manage-billing"
+          >
+            {busyPlan === '__portal__' ? 'Opening…' : 'Manage subscription & billing'}
+          </button>
         )}
       </div>
 
@@ -111,11 +138,17 @@ export default function Billing() {
               <button
                 className="btn-primary-action"
                 style={{ width: '100%', opacity: isCurrent ? 0.6 : 1 }}
-                disabled={isCurrent || busyPlan === plan.id}
-                onClick={() => handleSelect(plan.id)}
+                disabled={isCurrent || busyPlan === plan.id || busyPlan === '__portal__'}
+                onClick={() => (hasSubscription ? handleManage() : handleSelect(plan.id))}
                 id={`btn-select-plan-${plan.id}`}
               >
-                {isCurrent ? 'Current Plan' : busyPlan === plan.id ? 'Starting…' : `Choose ${plan.name}`}
+                {isCurrent
+                  ? 'Current Plan'
+                  : busyPlan === plan.id
+                    ? 'Starting…'
+                    : hasSubscription
+                      ? `Switch to ${plan.name}`
+                      : `Choose ${plan.name}`}
               </button>
             </div>
           );

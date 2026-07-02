@@ -106,7 +106,7 @@ public/
 supabase/
   config.toml
   migrations/                # 0001 schema+RLS, 0002 storage, 0003 hardening, 0004 fn grants, 0005 review reject-reason, 0006 audit hardening
-  functions/                 # 11 edge functions (see ARCHITECTURE.md for the map)
+  functions/                 # 12 edge functions (see ARCHITECTURE.md for the map)
 .env.example                 # full env-var reference
 BACKEND.md                   # deploy runbook
 ```

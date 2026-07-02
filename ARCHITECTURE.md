@@ -92,7 +92,8 @@ entitlement columns, remove anon video upload, enforce location cap).
 | `widget-reviews` | public | Returns a location's public, non-rejected reviews for the embeddable widget (CORS `*`, cached 5 min) |
 | `public-location` | public | Returns ONE location's funnel-safe branding (name, category, logo, colors, place id) for the public funnel; replaces anon table reads |
 | `create-upload-url` | public | Mints a one-object signed upload URL for a review video (funnel customers are anon) |
-| `stripe-checkout` | user | Creates a subscription Checkout session |
+| `stripe-checkout` | user | Creates a subscription Checkout session (blocks a second active sub) |
+| `stripe-portal` | user | Opens the Stripe Billing Portal to change plan / update card / cancel (proration-safe) |
 | `stripe-webhook` | signature | Syncs subscription → `agencies.plan` / `max_locations` |
 | `google-oauth-start` | user (owns location) | Builds the Google consent URL; verifies the location is in the caller's agency; HMAC-signs `state` |
 | `google-oauth-callback` | public | Verifies the signed `state`, exchanges code, stores refresh token + consent |
