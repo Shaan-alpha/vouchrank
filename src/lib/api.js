@@ -295,6 +295,19 @@ export async function createCheckout(plan) {
   return data;
 }
 
+// Opens the Stripe Billing Portal so an already-subscribed agency can change
+// plan, update its card, or cancel. Use this instead of createCheckout once a
+// subscription exists (createCheckout would start a second one).
+export async function openBillingPortal() {
+  if (demoMode) {
+    return { demo: true, message: 'Demo: would open the Stripe billing portal to manage your subscription.' };
+  }
+  const { data, error } = await supabase.functions.invoke('stripe-portal', { body: {} });
+  if (error) throw error;
+  if (data?.url) window.location.href = data.url; // redirect to Stripe portal
+  return data;
+}
+
 export async function startGoogleOAuth(locationId) {
   if (demoMode) {
     return { demo: true, message: 'Demo: would open Google consent to connect this location.' };

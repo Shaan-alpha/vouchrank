@@ -34,7 +34,8 @@ every screen to live Postgres data behind auth. The single seam is `src/lib/api.
 | `widget-reviews` | public | Public reviews for the embeddable widget (CORS `*`) |
 | `public-location` | public | One location's funnel-safe branding for the public funnel |
 | `create-upload-url` | public | One-object signed upload URL for a review video |
-| `stripe-checkout` | user | Creates a subscription Checkout session |
+| `stripe-checkout` | user | Creates a subscription Checkout session (blocks a second active sub) |
+| `stripe-portal` | user | Billing Portal session: change plan / update card / cancel |
 | `stripe-webhook` | signature | Syncs subscription status → `agencies.plan` / `max_locations` |
 | `google-oauth-start` | user (owns location) | Returns Google consent URL; HMAC-signs `state` |
 | `google-oauth-callback` | public | Verifies signed `state`, stores refresh token + recorded consent |
