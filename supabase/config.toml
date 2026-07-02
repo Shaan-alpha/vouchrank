@@ -37,3 +37,16 @@ verify_jwt = false   # Stripe calls this; verified via signature
 
 [functions.google-oauth-callback]
 verify_jwt = false   # Google redirect; state param verified internally
+
+# run-aio-audit and sync-google-reviews intentionally keep the default
+# verify_jwt = true. Today they're only invoked by signed-in dashboard users, so
+# the gateway JWT check is useful defense-in-depth. They ALSO support a trusted
+# cron/internal caller via the `x-internal-secret` header (see _shared/getCaller),
+# but that path can't pass the gateway while verify_jwt = true. When you wire the
+# scheduled sync/audit jobs (set FUNCTION_INTERNAL_SECRET), flip BOTH to
+# verify_jwt = false so the secret-only caller reaches the function — getCaller
+# then enforces auth internally (internal secret OR a signed-in owner).
+# [functions.run-aio-audit]
+# verify_jwt = false
+# [functions.sync-google-reviews]
+# verify_jwt = false

@@ -80,6 +80,17 @@ Deno.serve(async (req) => {
       .single();
     if (!loc || loc.agency_id !== member.agency_id) return json({ error: 'forbidden' }, 403);
 
+    // Light rate limit: cap review-request volume per location so a compromised
+    // or runaway caller can't rack up unbounded SMS/email cost. Generous enough
+    // for legitimate bulk sends; enforce per-plan quotas for production billing.
+    const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count } = await supabaseAdmin
+      .from('campaigns')
+      .select('id', { count: 'exact', head: true })
+      .eq('location_id', loc.id)
+      .gte('created_at', since);
+    if ((count ?? 0) >= 300) return json({ error: 'rate_limited' }, 429);
+
     const base = Deno.env.get('APP_BASE_URL') ?? 'https://app.vouchrank.com';
     const link = `${base}/r/${loc.id}`;
     const name = (firstName || 'there').slice(0, 80);
