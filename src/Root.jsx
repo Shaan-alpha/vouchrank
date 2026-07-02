@@ -1,4 +1,5 @@
 import { Suspense, lazy } from 'react';
+import GlitchLoader from './components/GlitchLoader.jsx';
 
 // Split the two audiences into separate bundles: review customers on /r/:id get
 // the lightweight funnel, agency users get the dashboard — neither ships the other.
@@ -9,13 +10,9 @@ const PublicFunnel = lazy(() => import('./components/PublicFunnel.jsx'));
 // review funnel (the link sent in review requests); everything else is the app.
 const funnelMatch = window.location.pathname.match(/^\/(?:r|rate)\/(.+?)\/?$/);
 
-const Splash = () => (
-  <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#030408', color: '#fff' }}>Loading…</div>
-);
-
 export default function Root() {
   return (
-    <Suspense fallback={<Splash />}>
+    <Suspense fallback={<GlitchLoader label="Loading VouchRank" />}>
       {funnelMatch ? <PublicFunnel locationId={decodeURIComponent(funnelMatch[1])} /> : <App />}
     </Suspense>
   );
