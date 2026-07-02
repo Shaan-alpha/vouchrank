@@ -211,7 +211,7 @@ export default function ReviewList({ reviews, onAddReviewReply, onSetReviewStatu
             Collected Customer Reviews
           </h3>
           
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {/* Source Filter */}
             <div className="filter-group">
               {['All', 'Google', 'Video', 'Manual'].map((src) => (
