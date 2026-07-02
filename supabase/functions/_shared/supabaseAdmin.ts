@@ -25,7 +25,8 @@ export async function getAgencyForUser(userId: string) {
     .from('agency_members')
     .select('agency_id, role')
     .eq('user_id', userId)
-    .order('role', { ascending: true }) // enum order: owner < admin < member
+    .order('role', { ascending: true })        // enum order: owner < admin < member
+    .order('created_at', { ascending: true })  // deterministic tie-break among same-role memberships
     .limit(1)
     .maybeSingle();
   return data;

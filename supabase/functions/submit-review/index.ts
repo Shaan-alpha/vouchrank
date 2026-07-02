@@ -37,18 +37,31 @@ Deno.serve(async (req) => {
     if ((count ?? 0) >= 20) return json({ error: 'rate_limited' }, 429);
 
     const isPrivate = source === 'private';
+    const text = String(body.text ?? '').slice(0, 4000);
+
+    // Anti-spam (authenticity, not sentiment): drop obvious link-farm spam on
+    // PUBLIC submissions before it can render in the embeddable widget. Private
+    // feedback isn't displayed, so it's exempt. Deliberately conservative
+    // (3+ links) to avoid suppressing legitimate reviews — pair with a funnel
+    // CAPTCHA / per-IP limit for real scale. Never keys off rating or sentiment.
+    if (!isPrivate && (text.match(/https?:\/\/|www\./gi) || []).length >= 3) {
+      return json({ error: 'spam_suspected' }, 422);
+    }
+
     const { error } = await supabaseAdmin.from('reviews').insert({
       location_id: loc.id,
       agency_id: loc.agency_id,
       author: String(body.author ?? 'Anonymous Customer').slice(0, 120),
-      avatar: body.avatar ?? null,
+      avatar: body.avatar ? String(body.avatar).slice(0, 200) : null,
       rating,
       source,
       sentiment: sentimentOf(rating),
       status: 'pending',                 // manual/video reviews await agency approval
       is_public: !isPrivate,
-      text: String(body.text ?? '').slice(0, 4000),
-      keywords: Array.isArray(body.keywords) ? body.keywords.slice(0, 20) : [],
+      text,
+      keywords: Array.isArray(body.keywords)
+        ? body.keywords.slice(0, 20).map((k: unknown) => String(k).slice(0, 40))
+        : [],
       video_url: body.videoUrl ?? null,
     });
     if (error) throw error;

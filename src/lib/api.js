@@ -80,7 +80,16 @@ export async function getAgency() {
   if (demoMode) {
     return { id: 'demo-agency', name: 'Demo Agency', plan: 'trial', plan_status: 'trialing', max_locations: 15 };
   }
-  const { data, error } = await supabase.from('agencies').select('*').limit(1).maybeSingle();
+  // Single-agency assumption: signup auto-creates exactly one agency per user
+  // (handle_new_user) and there's no UI yet to join a second. Order by created_at
+  // so the pick is deterministic (the signup agency). When multi-agency
+  // membership ships, thread an explicit agency_id through instead of picking one.
+  const { data, error } = await supabase
+    .from('agencies')
+    .select('*')
+    .order('created_at')
+    .limit(1)
+    .maybeSingle();
   if (error) throw error;
   return data;
 }
