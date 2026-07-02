@@ -26,9 +26,17 @@ Deno.serve(async (req) => {
 
     const { data: agency } = await supabaseAdmin
       .from('agencies')
-      .select('id, name, stripe_customer_id')
+      .select('id, name, stripe_customer_id, stripe_subscription_id, plan_status')
       .eq('id', member.agency_id)
       .single();
+
+    // Block starting a second subscription when one is already live — plan
+    // changes must go through the billing portal (stripe-portal), which updates
+    // the existing subscription with proration. (A canceled sub leaves the id
+    // set but plan_status = canceled, so re-subscribing is still allowed.)
+    if (agency?.stripe_subscription_id && ['active', 'trialing', 'past_due'].includes(agency.plan_status ?? '')) {
+      return json({ error: 'already_subscribed' }, 409);
+    }
 
     // Reuse or create the Stripe customer
     let customerId = agency?.stripe_customer_id;
