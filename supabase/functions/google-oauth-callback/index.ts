@@ -26,6 +26,17 @@ Deno.serve(async (req) => {
     .single();
   if (!loc) return Response.redirect(`${base}/locations?google=nolocation`, 302);
 
+  // Re-verify membership. The state is HMAC-signed and short-lived, but a user
+  // can be removed from the agency within that window — don't store OAuth tokens
+  // (and record consent) for someone who no longer belongs to this tenant.
+  const { data: membership } = await supabaseAdmin
+    .from('agency_members')
+    .select('user_id')
+    .eq('user_id', parsed.userId)
+    .eq('agency_id', loc.agency_id)
+    .maybeSingle();
+  if (!membership) return Response.redirect(`${base}/locations?google=forbidden`, 302);
+
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

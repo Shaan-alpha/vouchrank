@@ -92,9 +92,23 @@ Deno.serve(async (req) => {
       return json({ error: 'forbidden' }, 403);
     }
 
+    // Throttle user-triggered audits — each fans out several LLM calls on our
+    // keys. Cron/internal callers are exempt (they run on a controlled schedule).
+    if (!caller.internal) {
+      const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const { count } = await supabaseAdmin
+        .from('aio_audits')
+        .select('id', { count: 'exact', head: true })
+        .eq('location_id', locationId)
+        .gte('created_at', since);
+      if ((count ?? 0) >= 3) return json({ error: 'rate_limited' }, 429);
+    }
+
     // Queries are server-generated only (no client-supplied prompts) so the
-    // function can't be used as a free, arbitrary LLM proxy on our keys.
-    const where = city ? ` in ${city}` : '';
+    // function can't be used as a free, arbitrary LLM proxy on our keys. `city`
+    // is the one client input; cap its length so it can't inflate token usage.
+    const safeCity = String(city ?? '').replace(/\s+/g, ' ').trim().slice(0, 80);
+    const where = safeCity ? ` in ${safeCity}` : '';
     const queries: string[] = [
       `Who are the best ${loc.category}${where}? List the top 5 by name.`,
       `Recommend a highly-rated ${loc.category}${where}. List names in order.`,

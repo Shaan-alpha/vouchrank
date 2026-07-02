@@ -15,6 +15,7 @@ export const GOOGLE_NOTICES = {
   error: { kind: 'error', text: 'Could not connect Google. Please try again.' },
   badstate: { kind: 'error', text: 'Google connection failed (invalid request). Please retry.' },
   nolocation: { kind: 'error', text: 'Google connection failed: location not found.' },
+  forbidden: { kind: 'error', text: 'Google connection failed: you no longer have access to this location.' },
   norefresh: { kind: 'error', text: 'Google did not return offline access. Reconnect and allow it.' },
 };
 
