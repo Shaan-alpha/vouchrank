@@ -2107,6 +2107,13 @@ h1, h2, h3, h4, h5, h6 {
   flex-shrink: 0;
 }
 
+/* Two-up form row (domain/logo, name/phone) — stacks on mobile. */
+.form-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 /* ---- Phone / small-tablet layout ---- */
 @media (max-width: 640px) {
   .sidebar {
@@ -2149,12 +2156,46 @@ h1, h2, h3, h4, h5, h6 {
   .editor-layout,
   .settings-grid,
   .campaign-editor-layout,
-  .grid-widget-container {
+  .grid-widget-container,
+  .form-2col {
     grid-template-columns: 1fr;
   }
-  .widget-card {
+  /* Let the now-single grid tracks actually shrink (grid items default to
+     min-width:auto, which otherwise keeps a fixed-width child from collapsing). */
+  .dashboard-grid > *,
+  .editor-layout > *,
+  .settings-grid > *,
+  .campaign-editor-layout > * {
     min-width: 0;
+  }
+  .main-content select,
+  .main-content input,
+  .main-content textarea {
+    max-width: 100%;
+  }
+  /* Reviews: let the header badges and filter groups wrap instead of clipping. */
+  .review-card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .review-badge-group {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .filter-group {
+    flex-wrap: wrap;
+  }
+  /* Widgets: grid cards go fluid; carousel cards keep their width and scroll. */
+  .grid-widget-container .widget-card {
     width: 100%;
+    min-width: 0;
+  }
+  .slider-widget-container .widget-card {
+    flex-shrink: 0;
+  }
+  /* Competitor table scrolls cleanly (full columns) instead of squishing. */
+  .table-scroll .battleboard-table {
+    min-width: 600px;
   }
 }
 

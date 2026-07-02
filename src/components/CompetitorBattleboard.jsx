@@ -136,7 +136,7 @@ export default function CompetitorBattleboard({ company, competitors }) {
           Head-to-head comparison in your local geographical sector. Keep visibility scores high to win AI recommendations.
         </p>
 
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-scroll" style={{ overflowX: 'auto' }}>
           <table className="battleboard-table">
             <thead>
               <tr>
@@ -187,7 +187,7 @@ export default function CompetitorBattleboard({ company, competitors }) {
                     📹 {b.videoCount} clips
                   </td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
                       <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{b.replyRate}%</span>
                       {b.replyRate >= 80 ? (
                         <span style={{ color: 'var(--success)', fontSize: '10px' }}>● High</span>

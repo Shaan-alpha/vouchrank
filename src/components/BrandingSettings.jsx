@@ -103,7 +103,7 @@ export default function BrandingSettings({ company, onUpdateCompany }) {
         </div>
 
         {/* White label domain & logo badge */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="form-2col">
           <div className="input-field-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Globe style={{ width: '14px' }} /> Custom Domain
@@ -208,7 +208,7 @@ export default function BrandingSettings({ company, onUpdateCompany }) {
         
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '30px 20px', background: '#07080c' }}>
           {/* Phone Frame Simulator */}
-          <div style={{ width: '280px', background: '#0e1017', borderRadius: '32px', border: '8px solid #1f2231', overflow: 'hidden', boxShadow: '0 20px 45px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ width: '100%', maxWidth: '280px', background: '#0e1017', borderRadius: '32px', border: '8px solid #1f2231', overflow: 'hidden', boxShadow: '0 20px 45px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
             
             {/* Phone Speaker & Camera Notch */}
             <div style={{ width: '120px', height: '18px', background: '#1f2231', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', margin: '0 auto', display: 'flex', justifyContent: 'center' }}>

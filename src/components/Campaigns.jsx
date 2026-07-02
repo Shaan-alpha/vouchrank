@@ -161,7 +161,7 @@ export default function Campaigns({ company, campaignData }) {
             <form onSubmit={handleSendTestRequest} style={{ borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
               <h4 style={{ fontSize: '13px', color: '#fff', marginBottom: '12px' }}>Send Test Review Invite</h4>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div className="form-2col" style={{ marginBottom: '16px' }}>
                 <div className="input-field-group" style={{ marginBottom: 0 }}>
                   <label style={{ fontSize: '11px' }}>Customer Name</label>
                   <input
