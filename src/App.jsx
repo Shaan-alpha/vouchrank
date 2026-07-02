@@ -47,6 +47,8 @@ export default function App() {
   const [campaignData, setCampaignData] = useState(null);
   const [agency, setAgency] = useState(null);
   const [showLocationsModal, setShowLocationsModal] = useState(false);
+  const [loadError, setLoadError] = useState(null); // workspace load failed → show a retry gate
+  const [reloadKey, setReloadKey] = useState(0);     // bump to retry the workspace load
 
   // --- Post-redirect: strip the return query once so a refresh won't re-fire it ---
   useEffect(() => {
@@ -76,13 +78,23 @@ export default function App() {
   // --- Load companies once authed (or immediately in demo mode) ---
   useEffect(() => {
     if (isSupabaseConfigured && !session) return;
-    api.getCompanies().then((list) => {
-      setCompanies(list);
-      setSelectedCompany((prev) => prev || list[0] || null);
-      setCompaniesLoaded(true);
-    });
-    api.getAgency().then(setAgency).catch(() => {});
-  }, [session]);
+    let alive = true;
+    api.getCompanies()
+      .then((list) => {
+        if (!alive) return;
+        setCompanies(list);
+        setSelectedCompany((prev) => prev || list[0] || null);
+        setCompaniesLoaded(true);
+      })
+      .catch(() => {
+        if (!alive) return;
+        // Surface the failure instead of hanging on the loading splash forever.
+        setLoadError('We couldn’t load your workspace. Check your connection and try again.');
+        setCompaniesLoaded(true);
+      });
+    api.getAgency().then((a) => alive && setAgency(a)).catch(() => {});
+    return () => { alive = false; };
+  }, [session, reloadKey]);
 
   // --- Load per-location data when the selected company changes ---
   useEffect(() => {
@@ -98,12 +110,17 @@ export default function App() {
       setCompanyAudit(audit);
       setCompetitors(comp);
       setCampaignData(camp);
-    });
+    }).catch(() =>
+      setNotice({ kind: 'error', text: 'Some of this location’s data failed to load — try another location or refresh.' }),
+    );
     document.documentElement.style.setProperty('--agency-primary', selectedCompany.colors?.primary || '#8b5cf6');
     document.documentElement.style.setProperty('--agency-secondary', selectedCompany.colors?.secondary || '#06b6d4');
   }, [selectedCompany]);
 
   // --- Handlers ---
+  // Surface a transient message in the existing banner (auto-dismisses).
+  const notify = (kind, text) => setNotice({ kind, text });
+
   const handleToggleChecklist = (companyId, itemId) => {
     setCompanyAudit((prev) => {
       if (!prev) return prev;
@@ -115,12 +132,22 @@ export default function App() {
       };
     });
     const item = companyAudit?.checklist.find((i) => i.id === itemId);
-    if (item) api.toggleChecklistItem(itemId, !item.checked).catch(() => {});
+    if (item) {
+      api.toggleChecklistItem(itemId, !item.checked).catch(() => {
+        notify('error', 'Could not save that change.');
+        // Roll back the optimistic toggle so the UI matches the server.
+        setCompanyAudit((prev) =>
+          prev
+            ? { ...prev, checklist: prev.checklist.map((it) => (it.id === itemId ? { ...it, checked: item.checked } : it)) }
+            : prev,
+        );
+      });
+    }
   };
 
   const handleAddReviewReply = (reviewId, replyText) => {
     setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, aiReply: replyText } : r)));
-    api.saveReviewReply(reviewId, replyText).catch(() => {});
+    api.saveReviewReply(reviewId, replyText).catch(() => notify('error', 'Your reply was not saved. Please try again.'));
   };
 
   const handleSetReviewStatus = (reviewId, status, meta = {}) => {
@@ -136,7 +163,10 @@ export default function App() {
           : r,
       ),
     );
-    api.setReviewStatus(reviewId, status, meta).catch(() => {});
+    api.setReviewStatus(reviewId, status, meta).catch(async () => {
+      notify('error', 'Could not update that review — refreshing to resync.');
+      try { setReviews(await api.getReviews(selectedCompany.id)); } catch { /* keep optimistic state */ }
+    });
   };
 
   // Funnel submissions: optimistic local insert + persist via Edge Function.
@@ -147,10 +177,14 @@ export default function App() {
   };
 
   const handleRunAudit = async () => {
-    await api.runAioAudit(selectedCompany.id);
-    if (!api.demoMode) {
-      const audit = await api.getAudit(selectedCompany.id);
-      setCompanyAudit(audit);
+    try {
+      await api.runAioAudit(selectedCompany.id);
+      if (!api.demoMode) {
+        const audit = await api.getAudit(selectedCompany.id);
+        setCompanyAudit(audit);
+      }
+    } catch {
+      notify('error', 'The AI audit could not be completed. Please try again in a moment.');
     }
   };
 
@@ -166,7 +200,7 @@ export default function App() {
         colors: updatedCompany.colors,
         logoText: updatedCompany.logoText,
       })
-      .catch(() => {});
+      .catch(() => notify('error', 'Branding changes could not be saved. Please try again.'));
   };
 
   // Clears stale per-location data so keyed children remount fresh once the
@@ -213,16 +247,21 @@ export default function App() {
   };
 
   const handleUpdateLocation = async (id, fields) => {
+    // Await first so a failure propagates to LocationsManager's error UI;
+    // reflect it locally only after the write succeeds.
+    await api.updateLocation(id, fields);
     const ui = {};
     if (fields.name !== undefined) ui.name = fields.name;
     if (fields.category !== undefined) ui.category = fields.category;
     if (fields.domain !== undefined) ui.domain = fields.domain;
     setCompanies((prev) => prev.map((c) => (c.id === id ? { ...c, ...ui } : c)));
     setSelectedCompany((prev) => (prev && prev.id === id ? { ...prev, ...ui } : prev));
-    await api.updateLocation(id, fields).catch(() => {});
   };
 
   const handleDeleteLocation = async (id) => {
+    // Await the delete first so an error surfaces in LocationsManager instead of
+    // being swallowed after the row has already vanished from the UI.
+    await api.deleteLocation(id);
     const next = companies.filter((c) => c.id !== id);
     setCompanies(next);
     if (selectedCompany && selectedCompany.id === id) {
@@ -230,7 +269,6 @@ export default function App() {
       setSelectedCompany(next[0] || null);
     }
     if (next.length === 0) setShowLocationsModal(false); // avoid re-opening over onboarding
-    await api.deleteLocation(id).catch(() => {});
   };
 
   // --- Gates ---
@@ -239,6 +277,22 @@ export default function App() {
   }
   if (isSupabaseConfigured && !session) return <Auth />;
   if (!selectedCompany) {
+    if (loadError) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#030408', color: '#fff', textAlign: 'center', padding: 24 }}>
+          <div style={{ maxWidth: 360 }}>
+            <p style={{ color: '#f87171', fontSize: 14, marginBottom: 16 }}>{loadError}</p>
+            <button
+              className="btn-primary-action"
+              onClick={() => { setLoadError(null); setCompaniesLoaded(false); setReloadKey((k) => k + 1); }}
+              id="btn-retry-load"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      );
+    }
     if (companiesLoaded && companies.length === 0) {
       return <FirstLocation onCreate={handleCreateLocation} />;
     }
