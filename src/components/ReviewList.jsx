@@ -353,23 +353,20 @@ export default function ReviewList({ reviews, onAddReviewReply, onSetReviewStatu
                 {/* Simulated Video Review Block */}
                 {r.source === 'Video' && (
                   <div className="video-thumbnail-container">
-                    <div 
-                      className="video-thumbnail-bg" 
-                      style={{ 
-                        background: 'linear-gradient(45deg, #1e1e2f, #2a2a40)', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        color: 'rgba(255,255,255,0.15)',
-                        fontSize: '12px'
-                      }}
-                    >
-                      🎥 Dynamic Video Testimonial Preview
-                    </div>
+                    <div
+                      className="video-thumbnail-bg"
+                      style={{ background: 'radial-gradient(circle at 50% 38%, rgba(var(--agency-primary-rgb), 0.28), transparent 62%), linear-gradient(135deg, #14141f, #1f1f30)' }}
+                    />
                     <div className="video-play-overlay" onClick={() => handlePlayVideo(r)}>
                       <button className="video-play-btn" id={`play-video-${r.id}`}>
                         <Play fill="white" style={{ width: '18px', height: '18px', marginLeft: '2px' }} />
                       </button>
+                    </div>
+                    <div className="video-thumbnail-meta">
+                      <span className="video-thumbnail-label">
+                        <Video style={{ width: '12px', height: '12px' }} /> Video testimonial
+                      </span>
+                      <span className="video-thumbnail-duration">0:30</span>
                     </div>
                   </div>
                 )}

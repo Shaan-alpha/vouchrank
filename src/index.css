@@ -706,14 +706,42 @@ h1, h2, h3, h4, h5, h6 {
 .video-thumbnail-bg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  opacity: 0.6;
   transition: var(--transition);
 }
 
 .video-thumbnail-container:hover .video-thumbnail-bg {
   transform: scale(1.03);
-  opacity: 0.8;
+}
+
+.video-thumbnail-meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+  pointer-events: none;
+}
+
+.video-thumbnail-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.video-thumbnail-duration {
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  padding: 2px 6px;
 }
 
 .video-play-overlay {
@@ -725,7 +753,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.18);
   cursor: pointer;
 }
 
@@ -998,6 +1026,11 @@ h1, h2, h3, h4, h5, h6 {
   color: #fff;
   margin-top: 40px;
   flex-grow: 1;
+  /* Clamp long quotes so the author block always stays inside the square. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 7;
+  overflow: hidden;
 }
 
 .social-card-author {
@@ -2196,6 +2229,14 @@ h1, h2, h3, h4, h5, h6 {
   /* Competitor table scrolls cleanly (full columns) instead of squishing. */
   .table-scroll .battleboard-table {
     min-width: 600px;
+  }
+  /* Keep the square social preview's author visible on narrow screens. */
+  .social-card-canvas {
+    padding: 22px;
+  }
+  .social-card-content {
+    margin-top: 30px;
+    -webkit-line-clamp: 5;
   }
 }
 
