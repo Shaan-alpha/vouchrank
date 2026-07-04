@@ -61,7 +61,44 @@ npm run build      # production build
 npm run lint       # ESLint (0 errors)
 ```
 
-## How it works (short version)
+## Architecture
+
+```mermaid
+flowchart TD
+    AG["👤 Agency dashboard<br/>React 19 + Vite SPA"]
+    CU["⭐ Review customer<br/>branded funnel · /r/:id"]
+    WD["🔗 Embedded widget.js<br/>on client websites"]
+
+    SEAM["src/lib/api.js<br/>single data-access seam<br/>demo mock ↔ live"]
+    AG --> SEAM
+
+    subgraph Supabase
+        PG[("Postgres 17<br/>Row-Level Security")]
+        AU["Auth"]
+        ST["Storage<br/>review videos"]
+        EF["Edge Functions<br/>Deno · service role"]
+    end
+
+    SEAM -->|"supabase-js · RLS-scoped"| PG
+    SEAM --> AU
+    SEAM -->|"invoke"| EF
+    CU -->|"submit-review · public-location"| EF
+    WD -->|"widget-reviews"| EF
+    EF --> PG
+    EF --> ST
+
+    subgraph External
+        STR["💳 Stripe"]
+        GBP["🔎 Google Business Profile"]
+        LLM["🤖 Gemini · OpenAI · Perplexity"]
+        MSG["✉️ Resend · Twilio"]
+    end
+
+    EF --> STR
+    EF --> GBP
+    EF --> LLM
+    EF --> MSG
+```
 
 Components never talk to the database directly — they go through a single seam,
 `src/lib/api.js`, which serves mock data in demo mode and RLS-scoped Postgres +
