@@ -331,8 +331,17 @@ export async function startGoogleOAuth(locationId) {
 
 export async function runAioAudit(locationId, city) {
   if (demoMode) {
+    // Simulate a fresh audit so the dashboard visibly updates (score + queries).
     await new Promise((r) => setTimeout(r, 1200));
-    return { demo: true, score: Math.floor(40 + Math.random() * 55) };
+    const score = Math.floor(45 + Math.random() * 50);
+    const cat = (MOCK_COMPANIES.find((c) => c.id === locationId)?.category || 'local business').split('/')[0].trim().toLowerCase();
+    const stamp = Date.now();
+    const queries = [
+      { id: `q-${stamp}-1`, query: `Who is the best ${cat} near me?`, sources: 'ChatGPT, Gemini', recommended: score >= 55, rank: score >= 55 ? 2 : null },
+      { id: `q-${stamp}-2`, query: `Recommend a highly-rated ${cat}`, sources: 'Perplexity, Gemini', recommended: score >= 70, rank: score >= 70 ? 1 : null },
+      { id: `q-${stamp}-3`, query: `Which ${cat} has the best reviews?`, sources: 'ChatGPT', recommended: score >= 48, rank: score >= 48 ? 3 : null },
+    ];
+    return { demo: true, score, queries };
   }
   const { data, error } = await supabase.functions.invoke('run-aio-audit', {
     body: { locationId, city },

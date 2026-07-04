@@ -178,8 +178,11 @@ export default function App() {
 
   const handleRunAudit = async () => {
     try {
-      await api.runAioAudit(selectedCompany.id);
-      if (!api.demoMode) {
+      const res = await api.runAioAudit(selectedCompany.id);
+      if (api.demoMode) {
+        // Reflect the simulated audit so the gauge + query list visibly refresh.
+        setCompanyAudit((prev) => (prev ? { ...prev, rating: res.score, queries: res.queries ?? prev.queries } : prev));
+      } else {
         const audit = await api.getAudit(selectedCompany.id);
         setCompanyAudit(audit);
       }
