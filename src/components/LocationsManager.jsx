@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Building2, Plus, Pencil, Trash2, X, Check, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 const BLANK = { name: '', category: '', domain: '' };
@@ -18,6 +18,13 @@ export default function LocationsManager({
   const [mode, setMode] = useState('list'); // 'list' | 'add' | 'edit'
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(BLANK);
+
+  // Close the modal on Escape.
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
