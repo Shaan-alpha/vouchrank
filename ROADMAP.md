@@ -1,6 +1,6 @@
 # Roadmap
 
-Phased plan from foundation to scale. Status as of **2026-06-23**.
+Phased plan from foundation to scale. Status as of **2026-07-04**.
 Legend: ✅ done · 🟡 in progress · ⬜ not started.
 
 ---
@@ -25,7 +25,7 @@ The compliant prototype + live multi-tenant backbone.
 ## Phase 1 — Integrations live 🟡
 Make the authored edge functions real with credentials. (Activated 2026-06-23.)
 
-- ✅ Deploy all edge functions (`supabase functions deploy`) + set secrets — all **9** deployed, **11** secrets set
+- ✅ Deploy all edge functions (`supabase functions deploy`) + set secrets — all **12** deployed (incl. `stripe-portal`), secrets set
 - 🟡 Stripe: $299 / $499 recurring prices + webhook → entitlements wired — **test mode** (`rk_test_`); recreate live prices/webhook before real charges
 - 🟡 Google Business Profile: OAuth client + consent screen + redirect wired; **GBP API access request still pending approval** (quota 0 until granted — long lead)
 - 🟡 AIO engine: **Gemini live** (`AIO_GEMINI_MODEL=gemini-2.5-flash`); OpenAI / Perplexity deferred (billed)
@@ -42,7 +42,9 @@ Operational completeness for first real users.
 - ✅ Location management CRUD (add/edit/remove via a modal off the tenant selector; demo + live)
 - ✅ Review moderation/approval workflow (pending → approved/rejected) surfaced in UI
 - ✅ Real embeddable `widget.js` (`public/widget.js` + public `widget-reviews` fn; production CDN hosting still TODO)
-- ⬜ Error handling, empty states, and observability (logging/alerts)
+- ✅ Error handling + empty states (surfaced load/action failures with retry; per-tab "invitation to act" empty states) — observability (logging/alerts) still ⬜
+- ✅ Public demo deployed to Vercel (demo mode) + full mobile responsiveness + visual/interaction QA (no dead clicks)
+- ✅ Security hardening pass (rate-limits on public/costly edge fns, OAuth callback membership re-check, CSP + HSTS)
 - ⬜ Team invites (use `agency_members` roles)
 - ⬜ Onboarding polish + sample data
 
@@ -55,7 +57,7 @@ Turn it into a paid product.
 
 - ⬜ Public pricing page + trial → paid flow
 - ⬜ Entitlement enforcement (location caps by plan, feature gating for Pro)
-- ⬜ Stripe billing portal (manage card, invoices, cancel) + dunning on failed payments
+- 🟡 Stripe billing portal — change plan / update card / cancel shipped (`stripe-portal`); dunning on failed payments still ⬜
 - ⬜ Basic product analytics (funnel conversion, requests sent, reviews collected)
 - ⬜ Privacy policy / terms; GDPR/CCPA data handling for PII + video (see [COMPLIANCE.md](COMPLIANCE.md))
 

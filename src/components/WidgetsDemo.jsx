@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LayoutGrid, Sliders, Code, Copy, Check, X, Star } from 'lucide-react';
 
 export default function WidgetsDemo({ reviews, company }) {
@@ -6,6 +6,14 @@ export default function WidgetsDemo({ reviews, company }) {
   const [copied, setCopied] = useState(false);
   const [widgetLayout] = useState('grid'); // grid, slider
   const [widgetTheme, setWidgetTheme] = useState('dark'); // dark, light
+
+  // Close the embed-code panel on Escape.
+  useEffect(() => {
+    if (!showCodeModal) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setShowCodeModal(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showCodeModal]);
 
   // Show the same set the real widget shows: public, non-rejected — any rating
   // (no score filter, per COMPLIANCE.md).

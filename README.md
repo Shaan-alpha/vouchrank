@@ -1,5 +1,7 @@
 # VouchRank
 
+> **▶ Live demo — [vouchrank.vercel.app](https://vouchrank.vercel.app)** · fully clickable on mock data, no signup required.
+
 **A multi-tenant, white-label reputation platform that helps local businesses get
 recommended by AI search engines — built compliant with 2026 review regulations.**
 
@@ -33,9 +35,10 @@ under their own brand.
 | Layer | Tech |
 |---|---|
 | Frontend | React 19, Vite 8, lucide-react, plain CSS |
-| Backend | Supabase — Postgres 17, Auth, Storage, Edge Functions (Deno) |
-| Billing | Stripe |
-| Integrations | Google Business Profile API · Gemini 3.x / OpenAI / Perplexity · Resend · Twilio |
+| Backend | Supabase — Postgres 17 (Row-Level Security), Auth, Storage, Edge Functions (Deno/TS) |
+| Billing | Stripe — Checkout + billing portal |
+| Integrations | Google Business Profile API · Gemini / OpenAI / Perplexity · Resend · Twilio |
+| Hosting & tooling | Vercel · Playwright (e2e) · ESLint |
 
 ## Quickstart
 
@@ -77,16 +80,24 @@ rather than writing to the DB directly. Full detail in
 
 ## Status
 
-Phase 0 (foundation) complete. **Phase 1 (integrations) is live** (2026-06-23): all 9
-edge functions deployed with secrets set — Stripe Checkout (test mode), Gemini-powered
-AI audits, and Google OAuth wired (Google review *sync* still pending GBP API access
-approval). **Phase 2 (private beta) is underway**: location-management CRUD, the real
-embeddable `widget.js`, and review moderation (approve/reject/restore) have shipped.
-See [ROADMAP.md](ROADMAP.md).
+A polished, **fully-clickable demo is live at [vouchrank.vercel.app](https://vouchrank.vercel.app)**
+(demo mode — mock data, auth bypassed, every action simulated).
+
+Phase 0 (foundation) is complete and **Phase 1 (integrations) is live**: 12 Supabase Edge
+Functions deployed, Stripe Checkout + billing portal (test mode), Gemini-powered AI audits,
+and Google OAuth wired (Google review *sync* pending GBP API-access approval). **Phase 2
+(private beta)** work has shipped: location-management CRUD, the embeddable `widget.js`,
+review moderation, error/empty states, and full mobile responsiveness. See [ROADMAP.md](ROADMAP.md).
 
 ## Screenshots
 
-_Add dashboard + funnel screenshots here._
+**AIO dashboard** — AI-visibility score, simulated multi-engine query audits, and an optimization checklist:
+
+![AIO dashboard](docs/screenshot-dashboard.png)
+
+| Review moderation (approve / reject / AI replies) | Compliant branded funnel |
+|---|---|
+| ![Review moderation](docs/screenshot-reviews.png) | ![Customer funnel](docs/screenshot-funnel.png) |
 
 ## License
 
