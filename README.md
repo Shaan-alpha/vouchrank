@@ -24,10 +24,10 @@ under their own brand.
   LLMs for local-intent queries, with an optimization checklist.
 - **🎥 Compliant review funnel**: every customer gets the same options (Google /
   video / text review + private feedback); in-browser video capture; consent built in.
-- **🎨 Review → social graphics** (one-click branded PNGs from canvas.
-- **🔗 Embeddable widgets**) carousel + grid social-proof widgets with themes.
-- **📣 Review-request campaigns** (SMS (Twilio) + email (Resend), compliant copy.
-- **🏷️ White-label multi-tenancy**) per-agency branding, sub-accounts, custom domain.
+- **🎨 Review → social graphics** — one-click branded PNGs from canvas.
+- **🔗 Embeddable widgets** — carousel + grid social-proof widgets with themes.
+- **📣 Review-request campaigns** — SMS (Twilio) + email (Resend), compliant copy.
+- **🏷️ White-label multi-tenancy** — per-agency branding, sub-accounts, custom domain.
 - **💳 Billing**: Stripe subscriptions ($299 Agency / $499 Agency Pro).
 
 ## Tech stack
@@ -109,10 +109,10 @@ rather than writing to the DB directly. Full detail in
 
 ## Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) (system design, data model, RLS, edge functions
-- [COMPLIANCE.md](COMPLIANCE.md)) the review-gating rules (read before touching the funnel)
-- [BACKEND.md](BACKEND.md) (deploy runbook (Supabase, Stripe, Google, Twilio)
-- [ROADMAP.md](ROADMAP.md)) what's done and what's next
+- [ARCHITECTURE.md](ARCHITECTURE.md) — system design, data model, RLS, edge functions
+- [COMPLIANCE.md](COMPLIANCE.md) — the review-gating rules (read before touching the funnel)
+- [BACKEND.md](BACKEND.md) — deploy runbook (Supabase, Stripe, Google, Twilio)
+- [ROADMAP.md](ROADMAP.md) — what's done and what's next
 - [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md); context for AI coding agents
 
 ## Status
