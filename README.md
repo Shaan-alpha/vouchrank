@@ -27,7 +27,7 @@ under their own brand.
 - **🎨 Review → social graphics** — one-click branded PNGs from canvas.
 - **🔗 Embeddable widgets** — carousel + grid social-proof widgets with themes.
 - **📣 Review-request campaigns** — SMS (Twilio) + email (Resend), compliant copy.
-- **🏷️ White-label multi-tenancy** — per-agency branding, sub-accounts, custom domain.
+- **🏷️ White-label multi-tenancy** — per-agency branding and sub-accounts (custom-domain routing planned, see [ROADMAP.md](ROADMAP.md)).
 - **💳 Billing**: Stripe subscriptions ($299 Agency / $499 Agency Pro).
 
 ## Tech stack
@@ -113,6 +113,7 @@ rather than writing to the DB directly. Full detail in
 - [COMPLIANCE.md](COMPLIANCE.md) — the review-gating rules (read before touching the funnel)
 - [BACKEND.md](BACKEND.md) — deploy runbook (Supabase, Stripe, Google, Twilio)
 - [ROADMAP.md](ROADMAP.md) — what's done and what's next
+- [LICENSE.md](LICENSE.md) — PolyForm Noncommercial License 1.0.0
 - [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md); context for AI coding agents
 
 ## Status
@@ -138,4 +139,5 @@ review moderation, error/empty states, and full mobile responsiveness. See [ROAD
 
 ## License
 
-Proprietary, all rights reserved (update if you intend to open-source).
+Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE.md) — free for
+noncommercial use; commercial use requires a separate license.

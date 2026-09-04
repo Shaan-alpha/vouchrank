@@ -45,21 +45,25 @@ every screen to live Postgres data behind auth. The single seam is `src/lib/api.
 
 ## Live project (already provisioned)
 A free Supabase project (ref `fdpmuyllyqrmhljetzco`, region `us-east-1`)
-has been created and **migrations 0001–0005 are already applied** to it.
+has been created and **migrations 0001–0006 are already applied** to it.
 (The Supabase dashboard still labels this project `reviewpulse` from before the
 rename — rename it there if you want it to read `vouchrank`; the ref is unchanged.) The frontend
 `.env` (gitignored) points at it. Security/performance advisors are clean apart from
 intentional items (service-role-only token table; RLS helper functions executable by
 `authenticated` as required; unused indexes on the empty DB).
 
-## Activation status (2026-06-23)
-The hosted project is **live**: all **9** edge functions deployed and **11** secrets set. Steps 1–6 below are done for it; they remain the runbook for a fresh project.
+## Activation status (2026-09-04)
+All **12** edge functions are deployed and **11** secrets are set. Steps 1–6 below are done for this project; they remain the runbook for a fresh one.
+
+> **The Supabase project is currently paused** (dashboard status `INACTIVE`), so the live-mode backend will not answer until it is resumed from the dashboard. The Vercel frontend stays up because the public demo runs in demo mode against mock data.
 
 - **Stripe** — **test mode** (`rk_test_`): Agency `price_1TlJOJ…` ($299) / Agency Pro `price_1TlJOK…` ($499); webhook endpoint `we_1TlJRP…` → `stripe-webhook`. Recreate in **live mode** before real charges.
 - **AIO** — Gemini only: `AIO_GEMINI_MODEL=gemini-2.5-flash` (the code default `gemini-3.5-flash` isn't on the current key). OpenAI / Perplexity intentionally unset (billed).
 - **Google** — OAuth client + redirect (`…/functions/v1/google-oauth-callback`) configured; **GBP API access request pending** → `sync-google-reviews` returns no data until Google approves (reviews live only in the legacy `mybusiness.googleapis.com` v4 API).
 - **Resend** — key set; domain verification still required before sending.
-- **Frontend** — not yet hosted; `APP_BASE_URL=http://localhost:5173`. Update it and re-run `secrets set` when you deploy the frontend.
+- **Frontend** — deployed to Vercel (demo mode) at https://vouchrank.vercel.app; set
+  `APP_BASE_URL=https://vouchrank.vercel.app` (or the production domain) and re-run
+  `supabase secrets set` after any host change — review-request links are built from it.
 - **Twilio** — not configured (A2P 10DLC).
 - **Schema** — migration `0005` (review moderation: `review_reject_reason` enum + `reviews.reject_reason`/`reject_note` columns) applied **2026-06-25**; advisors still clean.
 
@@ -77,7 +81,7 @@ The hosted project is **live**: all **9** edge functions deployed and **11** sec
 > Secrets are managed with `supabase secrets set --env-file supabase/.env.secrets` (a gitignored bundle of the non-`VITE_`, non-`SUPABASE_` vars). `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` are auto-injected by the platform — don't set them.
 
 ## Deploy order
-1. `supabase link --project-ref fdpmuyllyqrmhljetzco` then `supabase db push` (migrations 0001–0005; already applied on the hosted project — this syncs a fresh/local DB).
+1. `supabase link --project-ref fdpmuyllyqrmhljetzco` then `supabase db push` (migrations 0001–0006; already applied on the hosted project — this syncs a fresh/local DB).
 2. In the dashboard: enable Email auth; confirm the signup trigger ran.
 3. `supabase secrets set` all server vars from `.env.example` (everything **without** `VITE_`).
 4. `supabase functions deploy` for each function above.

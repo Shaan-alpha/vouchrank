@@ -1,6 +1,6 @@
 # Roadmap
 
-Phased plan from foundation to scale. Status as of **2026-07-04**.
+Phased plan from foundation to scale. Status as of **2026-09-04**.
 Legend: ✅ done · 🟡 in progress · ⬜ not started.
 
 ---

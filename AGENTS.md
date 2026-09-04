@@ -80,13 +80,17 @@ Supabase (CLI): `supabase link --project-ref <ref>`, `supabase db push`,
 
 ```
 src/
+  main.jsx                   # React entry; renders <Root />
+  Root.jsx                   # top-level route split: /r/:id and /rate/:id -> PublicFunnel,
+                             #   everything else -> App (lazy/code-split)
   App.jsx                    # shell: auth gate, tenant selector, tab router, data loading
-  main.jsx                   # React entry
   index.css                  # all styles (design tokens, glass cards, funnel, widgets)
   lib/
     supabaseClient.js        # creates client; isSupabaseConfigured flag
     api.js                   # THE data-access seam (demo mock <-> live Postgres + edge fns)
   components/
+    PublicFunnel.jsx         # public funnel page; loads branding via public-location,
+                             #   reuses HarvesterFunnel
     Auth.jsx                 # email/password sign in/up (live mode only)
     FirstLocation.jsx        # onboarding when a live agency has no locations yet
     LocationsManager.jsx     # add/edit/delete locations (modal off the tenant selector)
@@ -131,7 +135,7 @@ BACKEND.md                   # deploy runbook
 - **Live mode** (`.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`):
   auth is enforced, reads/writes hit Postgres (RLS-scoped), edge functions run.
 - A live project is already provisioned: **`vouchrank`** (ref
-  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0006 applied. All 11
+  `fdpmuyllyqrmhljetzco`, region `us-east-1`), migrations 0001–0006 applied. All 12
   edge functions are **deployed** (2026-06-23 base + 2026-06-26 audit hardening);
   Stripe is in **test mode** and AIO runs Gemini-only — see [BACKEND.md](BACKEND.md)
   → "Activation status". (`OAUTH_STATE_SECRET`/`FUNCTION_INTERNAL_SECRET` not yet set —
